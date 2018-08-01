@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback</title>
+</head>
+<body>
+
+<form method="post" action="/feedback" onsubmit="return handleSubmit(event)" id="form">
+    <label>
+        Message
+        <textarea id="message" name="message" required></textarea>
+    </label>
+
+    <label>
+        Contact address
+        <input type="email" name="contactAddress" id="email" />
+    </label>
+
+    <label>
+        Attach files
+        <input type="file" name="files" id="files">
+    </label>
+
+    <button type="submit">
+        Send feedback
+    </button>
+</form>
+
+
+<script>
+
+    function handleSubmit(event) {
+
+        console.log(event);
+
+        var form = document.getElementById('form');
+        var fd = new FormData(form);
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('load', function(event) {
+           console.log('submitted without issues', event);
+        });
+
+        xhr.addEventListener('error', function(event) {
+            console.error('something went wrong when submitting feedback', event);
+        });
+
+        xhr.open('POST', '/feedback');
+
+        xhr.setRequestHeader('accepts', 'application/json');
+
+        xhr.send(fd);
+
+        return false;
+    }
+
+</script>
+
+</body>
+</html>
