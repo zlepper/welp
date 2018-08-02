@@ -29,7 +29,7 @@ import (
 	"time"
 )
 
-type DataStorageArgs struct {
+type AuthorizationDataStorageArgs struct {
 	// The name of the file to save data to
 	Filename string
 
@@ -40,21 +40,18 @@ type DataStorageArgs struct {
 	Logger models.Logger
 }
 
-// A simple file storage. Just saves things to a local flatfile
-// Keeps everything in memory meanwhile
-func NewFeedbackDataStorage(ctx context.Context, args DataStorageArgs) (models.FeedbackDataStorage, error) {
-	storage := &feedbackFileDataStorage{
-		args:    args,
+func NewAuthorizationDataStorage(ctx context.Context, args AuthorizationDataStorageArgs) (models.AuthorizationDataStorage, error) {
+	storage := &authorizationDataStorage{
+		data:    map[string]models.User{},
 		changed: false,
-		data:    map[string]models.Feedback{},
 		logger:  args.Logger,
 	}
 
 	saver := NewDataSaver(DataSaverArgs{
-		filename:     args.Filename,
-		saveable:     storage,
 		logger:       args.Logger,
 		saveInterval: args.SaveInterval,
+		saveable:     storage,
+		filename:     args.Filename,
 	})
 
 	err := saver.LoadData(&storage.data)
@@ -68,62 +65,80 @@ func NewFeedbackDataStorage(ctx context.Context, args DataStorageArgs) (models.F
 	return storage, nil
 }
 
-type feedbackFileDataStorage struct {
-	// The args for the data storage
-	args DataStorageArgs
-
-	// Indicates if anything has changed, since the last time the data was saved
+type authorizationDataStorage struct {
+	lock    sync.RWMutex
 	changed bool
-
-	// The actual data
-	data map[string]models.Feedback
-
-	// Lock to ensure exclusivity
-	lock sync.RWMutex
-
-	logger models.Logger
+	logger  models.Logger
+	data    map[string]models.User
 }
 
-func (s *feedbackFileDataStorage) Lock() {
-	s.lock.Lock()
+func (s *authorizationDataStorage) GetUser(ctx context.Context, email string) (models.User, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	user, exists := s.data[email]
+	if exists {
+		return user, nil
+	}
+
+	return models.User{}, models.ErrNoSuchUser
 }
 
-func (s *feedbackFileDataStorage) Unlock() {
-	s.lock.Unlock()
-}
+func (s *authorizationDataStorage) CreateUser(ctx context.Context, user models.User) error {
+	s.Lock()
+	defer s.Unlock()
 
-func (s *feedbackFileDataStorage) GetData() interface{} {
-	return s.data
-}
+	if _, exists := s.data[user.Email]; exists {
+		return models.ErrUserAlreadyExists
+	}
 
-func (s *feedbackFileDataStorage) HasChanged() bool {
-	return s.changed
-}
+	s.data[user.Email] = user
 
-func (s *feedbackFileDataStorage) SetChanged(changed bool) {
-	s.changed = changed
-}
-
-func (s *feedbackFileDataStorage) SaveFeedback(ctx context.Context, feedback models.Feedback) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.changed = true
-
-	s.data[feedback.Id] = feedback
 
 	return nil
 }
 
-func (s *feedbackFileDataStorage) GetAllFeedback(ctx context.Context) ([]models.Feedback, error) {
+func (s *authorizationDataStorage) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	out := make([]models.Feedback, len(s.data))
+	out := make([]models.User, len(s.data))
 	index := 0
-	for _, value := range s.data {
-		out[index] = value
-		index++
+	for _, user := range s.data {
+		out[index] = user
 	}
 
 	return out, nil
+}
+
+func (s *authorizationDataStorage) DeleteUser(ctx context.Context, email string) error {
+	s.Lock()
+	defer s.Unlock()
+
+	delete(s.data, email)
+
+	s.changed = true
+
+	return nil
+}
+
+func (s *authorizationDataStorage) Lock() {
+	s.lock.Lock()
+}
+
+func (s *authorizationDataStorage) Unlock() {
+	s.lock.Unlock()
+}
+
+func (s *authorizationDataStorage) GetData() interface{} {
+	return s.data
+}
+
+func (s *authorizationDataStorage) HasChanged() bool {
+	return s.changed
+}
+
+func (s *authorizationDataStorage) SetChanged(changed bool) {
+	s.changed = changed
 }

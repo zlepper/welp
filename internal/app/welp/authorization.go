@@ -20,39 +20,19 @@
  * THE SOFTWARE.
  */
 
-package models
+package welp
 
 import (
-	"context"
-	"github.com/google/uuid"
+	"github.com/labstack/echo"
+	"github.com/zlepper/welp/internal/pkg/models"
 )
 
-type FeedbackDataStorage interface {
-	SaveFeedback(ctx context.Context, feedback Feedback) error
-	GetAllFeedback(ctx context.Context) ([]Feedback, error)
+type AuthorizationApiArgs struct {
 }
 
-func NewFeedback(message, contactAddress string, files []File) (Feedback, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return Feedback{}, err
-	}
-
-	return Feedback{
-		Id:             id.String(),
-		ContactAddress: contactAddress,
-		Message:        message,
-		Files:          files,
-	}, nil
+type authorizationApiServer struct {
 }
 
-type Feedback struct {
-	// The id of the feedback entry
-	Id string `json:"id"`
-	// The message attached to the feedback
-	Message string `json:"message"`
-	// Files that was attached to the feedback
-	Files []File `json:"files"`
-	// A contact address for getting back to the user who provided the feedback
-	ContactAddress string `json:"contactAddress"`
+func bindAuthorization(g *echo.Group, logger models.Logger) {
+
 }

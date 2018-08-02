@@ -135,3 +135,12 @@ func (s *feedbackServer) saveMultipartFile(ctx context.Context, file *multipart.
 func (s *feedbackServer) getFeedbackEmbedHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "embed", nil)
 }
+
+func (s *feedbackServer) getAllFeedbackHandler(c echo.Context) error {
+	feedback, err := s.dataStorage.GetAllFeedback(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return s.respond(c, http.StatusOK, feedback, "feedback-list")
+}

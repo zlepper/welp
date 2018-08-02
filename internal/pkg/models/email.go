@@ -22,37 +22,25 @@
 
 package models
 
-import (
-	"context"
-	"github.com/google/uuid"
-)
-
-type FeedbackDataStorage interface {
-	SaveFeedback(ctx context.Context, feedback Feedback) error
-	GetAllFeedback(ctx context.Context) ([]Feedback, error)
+type EmailAddress struct {
+	Name    string
+	Address string
 }
 
-func NewFeedback(message, contactAddress string, files []File) (Feedback, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return Feedback{}, err
-	}
-
-	return Feedback{
-		Id:             id.String(),
-		ContactAddress: contactAddress,
-		Message:        message,
-		Files:          files,
-	}, nil
+// Utility function for creating an EmailAddress object
+func NewEmailAddress(name, address string) EmailAddress {
+	return EmailAddress{Name: name, Address: address}
 }
 
-type Feedback struct {
-	// The id of the feedback entry
-	Id string `json:"id"`
-	// The message attached to the feedback
-	Message string `json:"message"`
-	// Files that was attached to the feedback
-	Files []File `json:"files"`
-	// A contact address for getting back to the user who provided the feedback
-	ContactAddress string `json:"contactAddress"`
+type SendEmailArgs struct {
+	From         EmailAddress
+	ReplyTo      EmailAddress
+	To           EmailAddress
+	Subject      string
+	PlainContent string
+	HtmlContent  string
+}
+
+type EmailService interface {
+	SendEmail(args SendEmailArgs) error
 }

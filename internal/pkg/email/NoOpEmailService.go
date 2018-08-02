@@ -20,39 +20,17 @@
  * THE SOFTWARE.
  */
 
-package models
+package email
 
-import (
-	"context"
-	"github.com/google/uuid"
-)
+import "github.com/zlepper/welp/internal/pkg/models"
 
-type FeedbackDataStorage interface {
-	SaveFeedback(ctx context.Context, feedback Feedback) error
-	GetAllFeedback(ctx context.Context) ([]Feedback, error)
+func NewNoOpEmailService() models.EmailService {
+	return &noOpEmailService{}
 }
 
-func NewFeedback(message, contactAddress string, files []File) (Feedback, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return Feedback{}, err
-	}
-
-	return Feedback{
-		Id:             id.String(),
-		ContactAddress: contactAddress,
-		Message:        message,
-		Files:          files,
-	}, nil
+type noOpEmailService struct {
 }
 
-type Feedback struct {
-	// The id of the feedback entry
-	Id string `json:"id"`
-	// The message attached to the feedback
-	Message string `json:"message"`
-	// Files that was attached to the feedback
-	Files []File `json:"files"`
-	// A contact address for getting back to the user who provided the feedback
-	ContactAddress string `json:"contactAddress"`
+func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
+	return nil
 }

@@ -24,35 +24,34 @@ package models
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"errors"
 )
 
-type FeedbackDataStorage interface {
-	SaveFeedback(ctx context.Context, feedback Feedback) error
-	GetAllFeedback(ctx context.Context) ([]Feedback, error)
+type Role struct {
+	Name string `json:"name"`
+	Key  string `json:"key"`
 }
 
-func NewFeedback(message, contactAddress string, files []File) (Feedback, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return Feedback{}, err
-	}
-
-	return Feedback{
-		Id:             id.String(),
-		ContactAddress: contactAddress,
-		Message:        message,
-		Files:          files,
-	}, nil
+type User struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Roles    []Role `json:"roles"`
 }
 
-type Feedback struct {
-	// The id of the feedback entry
-	Id string `json:"id"`
-	// The message attached to the feedback
-	Message string `json:"message"`
-	// Files that was attached to the feedback
-	Files []File `json:"files"`
-	// A contact address for getting back to the user who provided the feedback
-	ContactAddress string `json:"contactAddress"`
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrNoSuchUser        = errors.New("no such user")
+)
+
+type AuthorizationDataStorage interface {
+	// Should fetch the user with the given username from the datastorage
+	// If the user doesn't exist, ErrNoSuchUser should be returned
+	GetUser(ctx context.Context, email string) (User, error)
+	// Should create the specified user if possible
+	// If the user already exists, then method should error
+	CreateUser(ctx context.Context, user User) error
+	// Should get all the users currently in the data storage
+	GetAllUsers(ctx context.Context) ([]User, error)
+	// Should delete the user with the given username
+	DeleteUser(ctx context.Context, email string) error
 }
