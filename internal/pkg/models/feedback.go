@@ -25,6 +25,7 @@ package models
 import (
 	"context"
 	"github.com/google/uuid"
+	"time"
 )
 
 type FeedbackDataStorage interface {
@@ -43,6 +44,7 @@ func NewFeedback(message, contactAddress string, files []File) (Feedback, error)
 		ContactAddress: contactAddress,
 		Message:        message,
 		Files:          files,
+		Created:        time.Now(),
 	}, nil
 }
 
@@ -55,4 +57,6 @@ type Feedback struct {
 	Files []File `json:"files"`
 	// A contact address for getting back to the user who provided the feedback
 	ContactAddress string `json:"contactAddress"`
+	// A timestamp for when the feedback was submitted
+	Created time.Time `json:"created"`
 }

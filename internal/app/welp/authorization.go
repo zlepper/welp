@@ -50,10 +50,17 @@ func bindAuthorizationApi(g *echo.Group, args AuthorizationApiArgs) {
 
 	g.GET("/login", authApiServer.loginGetHandler)
 	g.POST("/login", authApiServer.loginPostHandler)
+	g.GET("/logout", authApiServer.logoutGetHandler)
+}
+
+type getLoginResponse struct {
+	AuthState authState
 }
 
 func (s *authorizationApiServer) loginGetHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "login", consts.Nothing)
+	return c.Render(http.StatusOK, "login", getLoginResponse{
+		AuthState: s.getAuthState(c),
+	})
 }
 
 type loginRequest struct {
@@ -72,7 +79,7 @@ func (s *authorizationApiServer) loginPostHandler(c echo.Context) error {
 		return err
 	}
 
-	token, err := s.AuthService.Login(c.Request().Context(), request.Email, request.Password)
+	token, err := s.AuthService.Login(webapi.GetContext(c.Request()), request.Email, request.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -84,13 +91,19 @@ func (s *authorizationApiServer) loginPostHandler(c echo.Context) error {
 		Domain:  c.Request().URL.Host,
 		Expires: time.Now().Add(s.LoginDuration),
 		Path:    "/",
-		Value:   consts.Bearer + token,
+		Value:   token,
 	})
 
 	switch responseType {
 	case webapi.MIMEHTML:
 	default:
-		return c.Redirect(http.StatusSeeOther, "/")
+		returnUrl := c.Param("returnUrl")
+
+		if returnUrl == "" {
+			returnUrl = "/"
+		}
+
+		return c.Redirect(http.StatusSeeOther, returnUrl)
 	case webapi.MIMEJSON:
 		return c.JSON(http.StatusOK, loginResponse{Token: token})
 	case webapi.MIMEXML:
@@ -98,4 +111,26 @@ func (s *authorizationApiServer) loginPostHandler(c echo.Context) error {
 	}
 
 	return nil
+}
+
+func (s *authorizationApiServer) logoutGetHandler(c echo.Context) error {
+
+	// Send an expired cookie, to remove the current logged in cookie
+	c.SetCookie(&http.Cookie{
+		Name:    echo.HeaderAuthorization,
+		Domain:  c.Request().URL.Host,
+		Expires: time.Unix(0, 0),
+		Path:    "/",
+		Value:   "",
+	})
+
+	responseType := webapi.GetResponseType(c.Request())
+	switch responseType {
+	case webapi.MIMEJSON:
+		return c.JSON(http.StatusOK, consts.Nothing)
+	case webapi.MIMEXML:
+		return c.XML(http.StatusOK, consts.Nothing)
+	default:
+		return c.Redirect(http.StatusSeeOther, "/login")
+	}
 }

@@ -43,7 +43,7 @@ type UnauthorizedResponse struct {
 	Message string `xml:"message" json:"message"`
 }
 
-func GetJWTMiddlware(secretService models.SecretService) echo.MiddlewareFunc {
+func GetJWTMiddlware(secretService models.SecretService, logger models.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			signingSecret, err := secretService.GetSigningSecret(webapi.GetContext(c.Request()))
@@ -54,7 +54,14 @@ func GetJWTMiddlware(secretService models.SecretService) echo.MiddlewareFunc {
 			var user models.TokenUser
 			err = getTokenDataFromRequest(c.Request(), signingSecret, &user)
 			if err != nil {
+
+				logger.Infof("Authorization required: %v", err)
+
 				responseType := webapi.GetResponseType(c.Request())
+
+				returnUrl := c.Request().URL.EscapedPath()
+
+				logger.Debugf("Returning to: %s", returnUrl)
 
 				switch responseType {
 				case webapi.MIMEJSON:
@@ -62,7 +69,7 @@ func GetJWTMiddlware(secretService models.SecretService) echo.MiddlewareFunc {
 				default:
 					return echo.ErrUnauthorized
 				case webapi.MIMEHTML:
-					return c.Render(http.StatusUnauthorized, "login", consts.Nothing)
+					return c.Redirect(http.StatusSeeOther, "/login?returnUrl="+returnUrl)
 				}
 			}
 

@@ -25,6 +25,7 @@ package flatfile
 import (
 	"context"
 	"github.com/zlepper/welp/internal/pkg/models"
+	"sort"
 	"sync"
 	"time"
 )
@@ -124,6 +125,10 @@ func (s *feedbackFileDataStorage) GetAllFeedback(ctx context.Context) ([]models.
 		out[index] = value
 		index++
 	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Created.After(out[j].Created)
+	})
 
 	return out, nil
 }

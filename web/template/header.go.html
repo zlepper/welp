@@ -2,19 +2,27 @@
 
     <span class="filler"></span>
 
-    <a href="/logout" class="header-button">
+{{if .Authenticated}}
+    <a href="/logout" class="header-button" onclick="return logout()">
         Logout
     </a>
-
+{{else}}
     <a href="/login" class="header-button">
         Login
     </a>
+{{end}}
 </div>
 <style>
+    body {
+        margin: 0;
+    }
+
     .header {
         display: flex;
         flex-direction: row;
         align-items: center;
+        height: 3rem;
+        box-sizing: border-box;
     }
 
     .filler {
@@ -22,16 +30,25 @@
     }
 
     .header-button {
-        font-size: 1.4rem;
-        font-family: sans-serif;
-        letter-spacing: .1rem;
-        background: #B63332;
-        margin-left: 2rem;
-        margin-bottom: 1.15rem;
-        padding: 0 2rem;
-        color: #fff;
-        box-shadow: 0 0 20px 7px rgba(0, 0, 0, .05);
-        transition: all .1s ease-in-out;
+        text-decoration: none;
+        border: none;
+        background-color: #B63332;
+        color: white;
+        padding: 0.5rem;
+        line-height: 1rem;
+        box-sizing: border-box;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
     }
 
 </style>
+
+<script>
+    function logout() {
+        localStorage.removeItem('token');
+        return true;
+    }
+</script>

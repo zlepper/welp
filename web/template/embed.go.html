@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<form method="post" action="/feedback" onsubmit="return handleSubmit(event)" id="form">
+<form method="post" action="/" onsubmit="return handleSubmit(event)" id="form">
     <label>
         Message
         <textarea id="message" name="message" required></textarea>
@@ -19,7 +19,7 @@
 
     <label>
         Attach files
-        <input type="file" name="files" id="files">
+        <input type="file" name="files" id="files" multiple>
     </label>
 
     <button type="submit">
@@ -47,7 +47,7 @@
             console.error('something went wrong when submitting feedback', event);
         });
 
-        xhr.open('POST', '/feedback');
+        xhr.open('POST', form.action);
 
         xhr.setRequestHeader('Accept', 'application/json');
 

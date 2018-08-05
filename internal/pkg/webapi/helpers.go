@@ -23,17 +23,20 @@
 package webapi
 
 import (
+	"bytes"
 	"context"
 	"github.com/labstack/echo"
+	"io"
 	"net/http"
 	"strings"
 )
 
 const (
-	HeaderAccept = echo.HeaderAccept
-	MIMEHTML     = "text/html"
-	MIMEJSON     = "application/json"
-	MIMEXML      = "application/xml"
+	HeaderAccept       = echo.HeaderAccept
+	HeaderCacheControl = "Cache-Control"
+	MIMEHTML           = "text/html"
+	MIMEJSON           = "application/json"
+	MIMEXML            = "application/xml"
 )
 
 // Attempts to normalize the accept header
@@ -59,4 +62,25 @@ func GetResponseType(r *http.Request) string {
 
 func GetContext(r *http.Request) context.Context {
 	return r.Context()
+}
+
+// Attempts to detect the content type of the response
+// As this function consumes the first 512 bytes of the response
+// a new reader is returned, that also contains the start bytes
+func DetectContentType(r io.Reader) (string, io.Reader, error) {
+
+	data := make([]byte, 512)
+	read, err := r.Read(data)
+	if err != nil && err != io.EOF {
+		return "", nil, err
+	}
+
+	data = data[0:read]
+
+	contentType := http.DetectContentType(data)
+
+	// Get a reader that contains the initial content too
+	newReader := io.MultiReader(bytes.NewReader(data), r)
+
+	return contentType, newReader, nil
 }

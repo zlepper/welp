@@ -26,6 +26,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"strings"
 )
 
 var (
@@ -36,20 +37,22 @@ var (
 type FileStorage interface {
 	// Should save the file with the given name
 	// The file content can be read from the reader
-	SaveFile(ctx context.Context, name string, reader io.Reader) (size int64, err error)
+	SaveFile(ctx context.Context, id string, reader io.Reader) (size int64, err error)
 
 	// Should load the given file name from disk/storage
-	LoadFile(ctx context.Context, name string) (reader io.ReadCloser, err error)
+	LoadFile(ctx context.Context, id string) (reader io.ReadCloser, err error)
 }
 
 type File struct {
 	// The id used to refer to the file
 	Id string `json:"id"`
-	// The actual name of the uploaded file
-	Name string `json:"name"`
-	// The name of the location of the file
-	// For when the file needs to be loaded later on
-	Location string `json:"location"`
 	// The total size of the file
 	Size int64 `json:"size"`
+	// The contentType of the file
+	ContentType string `json:"contentType"`
+}
+
+// Returns true if this file is actually an image
+func (f *File) IsImage() bool {
+	return strings.HasPrefix(f.ContentType, "image/")
 }

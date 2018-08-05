@@ -27,6 +27,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"github.com/zlepper/welp/internal/pkg/models"
+	"github.com/zlepper/welp/internal/pkg/webapi"
 	"mime/multipart"
 	"net/http"
 	"path"
@@ -46,14 +47,13 @@ type bindFeedbackApiArgs struct {
 
 func bindFeedbackApi(e *echo.Group, args bindFeedbackApiArgs) {
 
-	g := e.Group("/feedback")
-
 	server := &feedbackServer{
 		bindFeedbackApiArgs: args,
 	}
 
-	g.POST("", server.createFeedbackEntryHandler)
-	g.GET("/embed", server.getFeedbackEmbedHandler)
+	e.POST("/", server.createFeedbackEntryHandler)
+	e.GET("/embed", server.getFeedbackEmbedHandler)
+	e.GET("/", server.getFeedbackListHandler, args.JwtMiddleware)
 }
 
 type createFeedbackRequest struct {
@@ -65,7 +65,7 @@ type createFeedbackRequest struct {
 }
 
 func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := webapi.GetContext(c.Request())
 
 	var request createFeedbackRequest
 	err := c.Bind(&request)
@@ -81,15 +81,19 @@ func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
 	// Read all the files and save them to storage
 	files := form.File["files"]
 
-	savedFiles := make([]models.File, len(files))
+	savedFiles := make([]models.File, 0)
 
-	for index, file := range files {
+	for _, file := range files {
+		if file.Size == 0 {
+			continue
+		}
+
 		created, err := s.saveMultipartFile(ctx, file)
 		if err != nil {
 			return err
 		}
 
-		savedFiles[index] = created
+		savedFiles = append(savedFiles, created)
 	}
 
 	feedback, err := models.NewFeedback(request.Message, request.ContactAddress, savedFiles)
@@ -107,11 +111,13 @@ func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
 }
 
 func (s *feedbackServer) saveMultipartFile(ctx context.Context, file *multipart.FileHeader) (createdFile models.File, err error) {
+
 	src, err := file.Open()
 	if err != nil {
 		return createdFile, err
 	}
 	defer src.Close()
+	contentType, reader, err := webapi.DetectContentType(src)
 
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -122,16 +128,15 @@ func (s *feedbackServer) saveMultipartFile(ctx context.Context, file *multipart.
 
 	filename := id.String() + ext
 
-	size, err := s.FileStorage.SaveFile(ctx, filename, src)
+	size, err := s.FileStorage.SaveFile(ctx, filename, reader)
 	if err != nil {
 		return createdFile, err
 	}
 
 	return models.File{
-		Id:       id.String(),
-		Location: filename,
-		Name:     file.Filename,
-		Size:     size,
+		Id:          filename,
+		Size:        size,
+		ContentType: contentType,
 	}, nil
 }
 
@@ -146,4 +151,25 @@ func (s *feedbackServer) getAllFeedbackHandler(c echo.Context) error {
 	}
 
 	return s.respond(c, http.StatusOK, feedback, "feedback-list")
+}
+
+type feedbackResponse struct {
+	Feedback  []models.Feedback
+	AuthState authState
+}
+
+func (s *feedbackServer) getFeedbackListHandler(c echo.Context) error {
+	ctx := webapi.GetContext(c.Request())
+
+	feedback, err := s.DataStorage.GetAllFeedback(ctx)
+	if err != nil {
+		return err
+	}
+
+	response := feedbackResponse{
+		Feedback:  feedback,
+		AuthState: s.getAuthState(c),
+	}
+
+	return s.respond(c, http.StatusOK, response, "feedback-list")
 }

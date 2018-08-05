@@ -45,7 +45,7 @@ func BindWeb(args models.BindWebArgs) {
 	e.Logger.SetLevel(log.DEBUG)
 
 	setupMiddleware(args, e)
-	jwtMiddleware := internal.GetJWTMiddlware(services.SecretService)
+	jwtMiddleware := internal.GetJWTMiddlware(services.SecretService, logger)
 
 	t := &templateRenderer{
 		templates: templates.Must(templates.GetTemplates()),
@@ -67,6 +67,13 @@ func BindWeb(args models.BindWebArgs) {
 		AuthService:   services.AuthorizationService,
 		LoginDuration: args.TokenDuration,
 		JwtMiddleware: jwtMiddleware,
+	})
+
+	bindFilesApi(rootGroup, filesApiArgs{
+		JwtMiddleware:       jwtMiddleware,
+		FileStorage:         services.FileStorage,
+		FeedbackDataStorage: services.FeedbackDataStorage,
+		Logger:              logger,
 	})
 
 	host(args, e)

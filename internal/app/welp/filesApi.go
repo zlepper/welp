@@ -26,45 +26,55 @@ import (
 	"github.com/labstack/echo"
 	"github.com/zlepper/welp/internal/pkg/models"
 	"github.com/zlepper/welp/internal/pkg/webapi"
+	"io"
+	"math"
 	"net/http"
+	"strconv"
 )
 
-type baseApi struct {
+type filesApiArgs struct {
+	models.Logger
+	models.FeedbackDataStorage
+	models.FileStorage
+	JwtMiddleware echo.MiddlewareFunc
 }
 
-// Responds to the request in the way to client prefers
-func (b *baseApi) respond(c echo.Context, code int, response interface{}, templateName string) error {
-	responseType := webapi.GetResponseType(c.Request())
+func bindFilesApi(e *echo.Group, args filesApiArgs) {
 
-	switch responseType {
-	case webapi.MIMEJSON:
-	default:
-		return c.JSON(http.StatusCreated, response)
-	case webapi.MIMEXML:
-		return c.XML(http.StatusCreated, response)
-	case webapi.MIMEHTML:
-		return c.Render(http.StatusCreated, templateName, response)
+	server := &filesApiServer{
+		filesApiArgs: args,
+		baseApi:      baseApi{},
 	}
 
-	return nil
+	args.Logger.Infof("Binding files api")
+	e.GET("/files/:id", server.getFileHandler, args.JwtMiddleware)
 }
 
-type authState struct {
-	Authenticated bool
-	User          models.TokenUser
+type filesApiServer struct {
+	filesApiArgs
+	baseApi
 }
 
-func (b *baseApi) getAuthState(c echo.Context) authState {
-	user := c.Get("user")
-	if user != nil {
-		tokenUser := user.(models.TokenUser)
-		return authState{
-			Authenticated: true,
-			User:          tokenUser,
+type getFileNotFound struct {
+	Message string `json:"message" xml:"message"`
+}
+
+func (s *filesApiServer) getFileHandler(c echo.Context) error {
+	ctx := webapi.GetContext(c.Request())
+
+	id := c.Param("id")
+
+	reader, err := s.FileStorage.LoadFile(ctx, id)
+	if err != nil {
+		if err == models.ErrFileNotFound {
+			return s.respond(c, http.StatusNotFound, getFileNotFound{Message: err.Error()}, "file-not-found")
 		}
+		return err
 	}
+	defer reader.Close()
 
-	return authState{
-		Authenticated: false,
-	}
+	c.Response().Header().Set(webapi.HeaderCacheControl, "public, max-age="+strconv.Itoa(math.MaxInt32))
+
+	_, err = io.Copy(c.Response(), reader)
+	return err
 }

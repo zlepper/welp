@@ -63,7 +63,10 @@ func (s *fileStorage) getPath(name string) string {
 }
 
 func (s *fileStorage) SaveFile(ctx context.Context, name string, reader io.Reader) (size int64, err error) {
-	file, err := os.Create(s.getPath(name))
+	filename := s.getPath(name)
+	s.logger.Debugf("Saving file to: '%s'", filename)
+
+	file, err := os.Create(filename)
 	if err != nil {
 		return 0, err
 	}
@@ -74,7 +77,7 @@ func (s *fileStorage) SaveFile(ctx context.Context, name string, reader io.Reade
 
 func (s *fileStorage) LoadFile(ctx context.Context, name string) (reader io.ReadCloser, err error) {
 	filename := s.getPath(name)
-	s.logger.Debugf("Saving file to '%s'", filename)
+	s.logger.Debugf("Loading file from '%s'", filename)
 
 	file, err := os.Open(filename)
 	if err != nil {

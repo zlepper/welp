@@ -6,7 +6,182 @@
 </head>
 <body>
 
-{{template "header"}}
+{{template "header" .AuthState}}
+
+<main>
+{{if .Feedback}}
+
+    <style type="text/css">
+        .flex {
+            display: flex;
+        }
+
+        .flex.column {
+            flex-direction: column;
+        }
+
+        .flex.row {
+            flex-direction: row;
+        }
+
+        .flex.wrap {
+            flex-wrap: wrap;
+        }
+
+        .feedback-list {
+            margin: 0 1rem;
+        }
+
+        .feedback-item {
+            flex: 0 0 auto;
+            min-height: 0;
+            box-shadow: 0 0 15px rgba(0, 0, 0, .15);
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .feedback-item-header {
+            flex: 0 0 3rem;
+            align-items: center;
+        }
+
+        .feedback-item-filler {
+            flex: 1;
+        }
+
+        .feedback-item-header-button {
+            text-decoration: none;
+            margin-left: 0.3rem;
+            height: 3rem;
+            color: white;
+            background-color: #B63332;
+            border: none;
+        }
+
+        .feedback-item-attachment {
+            background: no-repeat center;
+            background-size: contain;
+            position: relative;
+            height: 10rem;
+            width: 10rem;
+            margin: 1rem;
+        }
+
+        .feedback-item-attachment-button {
+            text-decoration: none;
+            border: none;
+            background-color: #B63332;
+            color: white;
+            padding: 0.5rem;
+            line-height: 1rem;
+            box-sizing: border-box;
+            font-size: 1rem;
+            display: inline-block;
+        }
+
+        .feedback-item-message {
+            width: 100%;
+            padding: 1rem;
+            margin-top: .5rem;
+            box-sizing: border-box;
+            color: black;
+        }
+
+        .feedback-item-attachments {
+            max-width: 100%;
+            padding: 1rem;
+        }
+
+        .feedback-item-body-item {
+            border: 1px solid #ebebeb;
+        }
+
+        .feedback-item-body-item:first-child {
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+        }
+
+        .feedback-item-body-item:last-child {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        .contact-address {
+            color: black;
+        }
+    </style>
+
+    <div class="feedback-list flex column">
+    {{range .Feedback}}
+        <div class="feedback-item flex column">
+            <div class="feedback-item-header flex row">
+
+            {{if .ContactAddress}}
+                <span>From <a class="contact-address" href="mailto:{{.ContactAddress}}">{{.ContactAddress}}</a></span>
+            {{else}}
+                <span>No contact address provided</span>
+            {{end}}
+
+                <span class="feedback-item-filler"></span>
+
+                <button class="feedback-item-header-button">
+                    Mark as read
+                </button>
+
+                <button class="feedback-item-header-button">
+                    Reply
+                </button>
+
+            </div>
+
+            <div class="feedback-item-body flex column">
+                <div class="feedback-item-message feedback-item-body-item">
+                {{.Message}}
+                </div>
+
+            {{if .Files}}
+                <div class="feedback-item-attachments feedback-item-body-item flex row wrap">
+                {{range .Files}}
+                {{if .IsImage}}
+                    <div class="feedback-item-attachment"
+                         style="background-image: url(/files/{{.Id}})">
+                        <a href="/files/{{.Id}}" download class="feedback-item-attachment-button">
+                            Download
+                        </a>
+                        <button class="feedback-item-attachment-button">
+                            Preview
+                        </button>
+                    </div>
+                {{else}}
+                    <div class="feedback-item-attachment">
+                        <a href="/files/{{.Id}}" download class="feedback-item-attachment-button">
+                            Download
+                        </a>
+                    </div>
+                {{end}}
+                {{end}}
+                </div>
+            {{end}}
+            </div>
+        </div>
+    {{end}}
+    </div>
+{{else}}
+
+    <style>
+        .no-feedback {
+            margin: auto;
+        }
+    </style>
+
+    <div class="no-feedback">
+        No feedback has been sent so far.
+    </div>
+
+{{end}}
+</main>
 
 </body>
 </html>
