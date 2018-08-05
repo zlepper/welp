@@ -20,19 +20,32 @@
  * THE SOFTWARE.
  */
 
-package email
+package models
 
-import "github.com/zlepper/welp/internal/pkg/models"
+import "time"
 
-// Creates an email service that doesn't do anything
-// Useful if you don't ever want emails to leave the system
-func NewNoOpEmailService() models.EmailService {
-	return &noOpEmailService{}
-}
+type BindWebArgs struct {
+	// If the web server should automatically fetch an https certificate and use that
+	// If enabled, will ignore the port argument, and always bind on port 80 and 433
+	// Will also configure HSTS
+	UseHttps bool
+	// The port to bind to
+	Port int
 
-type noOpEmailService struct {
-}
+	// Where to save the uploaded files
+	FolderPath string
 
-func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
-	return nil
+	// The name of the folder where the database files should be stored
+	// when using flat-file storage
+	DatabaseFolderName string
+	// How often the files should be saved when using flatfiles
+	SaveInterval time.Duration
+
+	// An optional key for sendgrid
+	SendGridApiKey string
+
+	// How long autho
+	TokenDuration time.Duration
+
+	EmailSenderName, EmailSenderAddress string
 }

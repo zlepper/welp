@@ -29,16 +29,16 @@ import (
 )
 
 type SendGridEmailServiceArgs struct {
-	logger models.Logger
+	Logger models.Logger
 	// The sendgrid api key
 	ApiKey string
 }
 
-func NewSendGridEmailService(args SendGridEmailServiceArgs) models.EmailService {
+func NewSendGridEmailService(args SendGridEmailServiceArgs) (models.EmailService, error) {
 	return &sendGridEmailService{
-		logger: args.logger,
+		logger: args.Logger,
 		apiKey: args.ApiKey,
-	}
+	}, nil
 }
 
 type sendGridEmailService struct {

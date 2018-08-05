@@ -35,12 +35,27 @@ var contents = []templateContent{
 
 	{
 		Filename: "embed",
-		Content:  "<!doctype html><html lang=en><meta charset=utf-8><title>Feedback</title><form method=post action=/feedback onsubmit=\"return handleSubmit(event)\" id=form><label>Message\n<textarea id=message name=message required></textarea></label>\n<label>Contact address\n<input type=email name=contactAddress id=email></label>\n<label>Attach files\n<input type=file name=files id=files></label>\n<button>\nSend feedback</button></form><script>function handleSubmit(event){console.log(event);var form=document.getElementById('form');var fd=new FormData(form);var xhr=new XMLHttpRequest();xhr.addEventListener('load',function(event){console.log('submitted without issues',event);});xhr.addEventListener('error',function(event){console.error('something went wrong when submitting feedback',event);});xhr.open('POST','/feedback');xhr.setRequestHeader('accepts','application/json');xhr.send(fd);return false;}</script>",
+		Content:  "<!doctype html><html lang=en><meta charset=utf-8><title>Feedback</title><form method=post action=/feedback onsubmit=\"return handleSubmit(event)\" id=form><label>Message\n<textarea id=message name=message required></textarea></label>\n<label>Contact address\n<input type=email name=contactAddress id=email></label>\n<label>Attach files\n<input type=file name=files id=files></label>\n<button>\nSend feedback</button></form><script>function handleSubmit(event){console.log(event);var form=document.getElementById('form');var fd=new FormData(form);var xhr=new XMLHttpRequest();xhr.addEventListener('load',function(event){console.log('submitted without issues',event);});xhr.addEventListener('error',function(event){console.error('something went wrong when submitting feedback',event);});xhr.open('POST','/feedback');xhr.setRequestHeader('Accept','application/json');xhr.send(fd);return false;}</script>",
 	},
 
 	{
 		Filename: "feedback-created",
 		Content:  "<!doctype html><html lang=en><meta charset=utf-8><title>Feedback created</title>Hello WelD!!\n<script>if(window){console.log(\"I'm alive mutha\")}</script>",
+	},
+
+	{
+		Filename: "feedback-list",
+		Content:  "<!doctype html><html lang=en><meta charset=utf-8><title>Feedback list</title>{{template \"header\"}}",
+	},
+
+	{
+		Filename: "header",
+		Content:  "<div class=header><span class=filler></span><a href=/logout class=header-button>Logout</a>\n<a href=/login class=header-button>Login</a></div><style>.header{display:flex;flex-direction:row;align-items:center}.filler{flex:1}.header-button{font-size:1.4rem;font-family:sans-serif;letter-spacing:.1rem;background:#b63332;margin-left:2rem;margin-bottom:1.15rem;padding:0 2rem;color:#fff;box-shadow:0 0 20px 7px #0000000d;transition:all .1s ease-in-out}</style>",
+	},
+
+	{
+		Filename: "login",
+		Content:  "<!doctype html><html lang=en><meta charset=utf-8><title>Title</title>{{template \"header\"}}<div><form method=post action=/login onsubmit=\"return login(event)\" id=login-form><label>Email\n<input type=email name=email id=email></label>\n<label>Password\n<input type=password name=password id=password></label>\n<button>\nLogin</button></form></div><script>function login(event){console.log(event);var form=document.getElementById('login-form');var fd=new FormData(form);var xhr=new XMLHttpRequest();xhr.addEventListener('load',function(event){console.log('Got response',event);});xhr.addEventListener('error',function(event){console.error('Request failed',event);});xhr.open('POST','/login');xhr.setRequestHeader('Accept','application/json');xhr.send(fd);return false;}</script>",
 	},
 }
 

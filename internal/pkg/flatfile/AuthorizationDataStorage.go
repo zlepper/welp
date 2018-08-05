@@ -123,6 +123,10 @@ func (s *authorizationDataStorage) DeleteUser(ctx context.Context, email string)
 	return nil
 }
 
+func (s *authorizationDataStorage) GetUserCount(ctx context.Context) (int, error) {
+	return len(s.data), nil
+}
+
 func (s *authorizationDataStorage) Lock() {
 	s.lock.Lock()
 }

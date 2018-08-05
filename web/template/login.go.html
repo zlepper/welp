@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+{{template "header"}}
+
+<div>
+    <form method="post" action="/login" onsubmit="return login(event)" id="login-form">
+
+        <label>
+            Email
+            <input type="email" name="email" id="email">
+        </label>
+
+        <label>
+            Password
+            <input type="password" name="password" id="password">
+        </label>
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+</div>
+
+<script>
+    function login(event) {
+
+        console.log(event);
+
+        var form = document.getElementById('login-form');
+        var fd = new FormData(form);
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('load', function (event) {
+            console.log('Got response', event);
+        });
+
+        xhr.addEventListener('error', function (event) {
+            console.error('Request failed', event);
+        });
+
+        xhr.open('POST', '/login');
+
+        xhr.setRequestHeader('Accept', 'application/json');
+
+        xhr.send(fd);
+
+        return false;
+    }
+</script>
+
+</body>
+</html>

@@ -20,19 +20,11 @@
  * THE SOFTWARE.
  */
 
-package email
+package models
 
-import "github.com/zlepper/welp/internal/pkg/models"
+import "context"
 
-// Creates an email service that doesn't do anything
-// Useful if you don't ever want emails to leave the system
-func NewNoOpEmailService() models.EmailService {
-	return &noOpEmailService{}
-}
-
-type noOpEmailService struct {
-}
-
-func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
-	return nil
+type SecretService interface {
+	// Should get the secret used to sign json tokens
+	GetSigningSecret(ctx context.Context) ([]byte, error)
 }

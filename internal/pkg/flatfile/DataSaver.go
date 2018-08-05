@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"github.com/zlepper/welp/internal/pkg/models"
 	"os"
+	"path"
 	"time"
 )
 
@@ -93,8 +94,12 @@ func (d *DataSaver) saveChanges() error {
 
 	d.logger.Info("Data has changed. Saving...")
 
-	d.saveable.Lock()
-	defer d.saveable.Unlock()
+	// Ensure the directory exists
+	dir := path.Dir(d.filename)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return err
+	}
 
 	tempName := d.filename + ".temp"
 
@@ -104,6 +109,9 @@ func (d *DataSaver) saveChanges() error {
 		return err
 	}
 	defer file.Close()
+
+	d.saveable.Lock()
+	defer d.saveable.Unlock()
 
 	err = json.NewEncoder(file).Encode(d.saveable.GetData())
 	if err != nil {

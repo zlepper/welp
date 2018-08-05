@@ -24,15 +24,78 @@ package welp
 
 import (
 	"github.com/labstack/echo"
+	"github.com/zlepper/welp/internal/pkg/consts"
 	"github.com/zlepper/welp/internal/pkg/models"
+	"github.com/zlepper/welp/internal/pkg/webapi"
+	"net/http"
+	"time"
 )
 
 type AuthorizationApiArgs struct {
+	Logger        models.Logger
+	AuthService   models.AuthorizationService
+	LoginDuration time.Duration
+	JwtMiddleware echo.MiddlewareFunc
 }
 
 type authorizationApiServer struct {
+	baseApi
+	AuthorizationApiArgs
 }
 
-func bindAuthorization(g *echo.Group, logger models.Logger) {
+func bindAuthorizationApi(g *echo.Group, args AuthorizationApiArgs) {
+	authApiServer := &authorizationApiServer{
+		AuthorizationApiArgs: args,
+	}
 
+	g.GET("/login", authApiServer.loginGetHandler)
+	g.POST("/login", authApiServer.loginPostHandler)
+}
+
+func (s *authorizationApiServer) loginGetHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "login", consts.Nothing)
+}
+
+type loginRequest struct {
+	Email    string `json:"email" form:"email" xml:"email" query:"email"`
+	Password string `json:"password" form:"password" xml:"password" query:"password"`
+}
+
+type loginResponse struct {
+	Token string `json:"token" xml:"token"`
+}
+
+func (s *authorizationApiServer) loginPostHandler(c echo.Context) error {
+	var request loginRequest
+	err := c.Bind(&request)
+	if err != nil {
+		return err
+	}
+
+	token, err := s.AuthService.Login(c.Request().Context(), request.Email, request.Password)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	responseType := webapi.GetResponseType(c.Request())
+
+	c.SetCookie(&http.Cookie{
+		Name:    echo.HeaderAuthorization,
+		Domain:  c.Request().URL.Host,
+		Expires: time.Now().Add(s.LoginDuration),
+		Path:    "/",
+		Value:   consts.Bearer + token,
+	})
+
+	switch responseType {
+	case webapi.MIMEHTML:
+	default:
+		return c.Redirect(http.StatusSeeOther, "/")
+	case webapi.MIMEJSON:
+		return c.JSON(http.StatusOK, loginResponse{Token: token})
+	case webapi.MIMEXML:
+		return c.JSON(http.StatusOK, loginResponse{Token: token})
+	}
+
+	return nil
 }

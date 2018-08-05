@@ -38,6 +38,13 @@ type User struct {
 	Roles    []Role `json:"roles"`
 }
 
+// A user variant, that can be passed around in tokens
+type TokenUser struct {
+	Email string
+	// The role keys of the roles the user has
+	Roles []string
+}
+
 var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 	ErrNoSuchUser        = errors.New("no such user")
@@ -54,4 +61,11 @@ type AuthorizationDataStorage interface {
 	GetAllUsers(ctx context.Context) ([]User, error)
 	// Should delete the user with the given username
 	DeleteUser(ctx context.Context, email string) error
+	// Should get the number of users in the system
+	GetUserCount(ctx context.Context) (int, error)
+}
+
+type AuthorizationService interface {
+	CreateUser(ctx context.Context, email, password string, roles []string) error
+	Login(ctx context.Context, email, password string) (string, error)
 }

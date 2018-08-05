@@ -20,19 +20,12 @@
  * THE SOFTWARE.
  */
 
-package email
+package consts
 
-import "github.com/zlepper/welp/internal/pkg/models"
+const (
+	Issuer = "welp"
+	Bearer = "Bearer "
+)
 
-// Creates an email service that doesn't do anything
-// Useful if you don't ever want emails to leave the system
-func NewNoOpEmailService() models.EmailService {
-	return &noOpEmailService{}
-}
-
-type noOpEmailService struct {
-}
-
-func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
-	return nil
-}
+// Just nothing
+var Nothing = struct{}{}

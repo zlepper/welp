@@ -23,43 +23,20 @@
 package welp
 
 import (
-	"context"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/zlepper/welp/internal/pkg/flatfile"
+	"github.com/zlepper/welp/internal/app/welp/internal"
 	"github.com/zlepper/welp/internal/pkg/models"
 	"github.com/zlepper/welp/internal/pkg/templates"
-	"strconv"
-	"time"
 )
 
-type BindWebArgs struct {
-	// If the web server should automatically fetch an https certificate and use that
-	// If enabled, will ignore the port argument, and always bind on port 80 and 433
-	// Will also configure HSTS
-	UseHttps bool
-	// The port to bind to
-	Port int
-
-	// Where to save the uploaded files
-	FolderPath string
-
-	// The filename of the flatfile database
-	DatabaseFileName string
-}
-
-func BindWeb(args BindWebArgs) {
+func BindWeb(args models.BindWebArgs) {
 	e := echo.New()
 
 	var logger models.Logger = e.Logger
-	fileStorage, err := getFileStorage(args, logger)
-	if err != nil {
-		e.Logger.Fatal(err)
-		return
-	}
 
-	dataStorage, err := getDataStorage(args, logger)
+	services, err := internal.GetServices(args, logger)
 	if err != nil {
 		e.Logger.Fatal(err)
 		return
@@ -68,6 +45,7 @@ func BindWeb(args BindWebArgs) {
 	e.Logger.SetLevel(log.DEBUG)
 
 	setupMiddleware(args, e)
+	jwtMiddleware := internal.GetJWTMiddlware(services.SecretService)
 
 	t := &templateRenderer{
 		templates: templates.Must(templates.GetTemplates()),
@@ -77,39 +55,24 @@ func BindWeb(args BindWebArgs) {
 
 	rootGroup := e.Group("")
 
-	bindFeedbackApi(rootGroup, logger, dataStorage, fileStorage)
-
-	if args.UseHttps {
-		hostHttps(e, args)
-	} else {
-		hostHttp(e, args)
-	}
-}
-
-func hostHttps(e *echo.Echo, args BindWebArgs) {
-	e.Logger.Fatal(e.StartAutoTLS(":443"))
-}
-
-func hostHttp(e *echo.Echo, args BindWebArgs) {
-	e.Logger.Fatal(e.Start(":" + strconv.Itoa(args.Port)))
-}
-
-func getFileStorage(args BindWebArgs, logger models.Logger) (models.FileStorage, error) {
-	return flatfile.NewFileStorage(flatfile.FileStorageArgs{
-		Logger:     logger,
-		FolderPath: args.FolderPath,
+	bindFeedbackApi(rootGroup, bindFeedbackApiArgs{
+		FileStorage:   services.FileStorage,
+		Logger:        logger,
+		DataStorage:   services.FeedbackDataStorage,
+		JwtMiddleware: jwtMiddleware,
 	})
-}
 
-func getDataStorage(args BindWebArgs, logger models.Logger) (models.FeedbackDataStorage, error) {
-	return flatfile.NewFeedbackDataStorage(context.Background(), flatfile.DataStorageArgs{
-		Logger:       logger,
-		SaveInterval: 1 * time.Second,
-		Filename:     args.DatabaseFileName,
+	bindAuthorizationApi(rootGroup, AuthorizationApiArgs{
+		Logger:        logger,
+		AuthService:   services.AuthorizationService,
+		LoginDuration: args.TokenDuration,
+		JwtMiddleware: jwtMiddleware,
 	})
+
+	host(args, e)
 }
 
-func setupMiddleware(args BindWebArgs, e *echo.Echo) {
+func setupMiddleware(args models.BindWebArgs, e *echo.Echo) {
 	e.Use(
 		middleware.Recover(),
 		middleware.Logger(),

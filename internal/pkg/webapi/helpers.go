@@ -23,6 +23,7 @@
 package webapi
 
 import (
+	"context"
 	"github.com/labstack/echo"
 	"net/http"
 	"strings"
@@ -54,4 +55,8 @@ func GetResponseType(r *http.Request) string {
 	}
 
 	return MIMEHTML
+}
+
+func GetContext(r *http.Request) context.Context {
+	return r.Context()
 }

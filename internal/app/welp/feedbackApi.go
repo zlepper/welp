@@ -33,20 +33,23 @@ import (
 )
 
 type feedbackServer struct {
-	logger      models.Logger
-	dataStorage models.FeedbackDataStorage
-	fileStorage models.FileStorage
+	bindFeedbackApiArgs
 	baseApi
 }
 
-func bindFeedbackApi(e *echo.Group, logger models.Logger, dataStorage models.FeedbackDataStorage, fileStorage models.FileStorage) {
+type bindFeedbackApiArgs struct {
+	Logger        models.Logger
+	DataStorage   models.FeedbackDataStorage
+	FileStorage   models.FileStorage
+	JwtMiddleware echo.MiddlewareFunc
+}
+
+func bindFeedbackApi(e *echo.Group, args bindFeedbackApiArgs) {
 
 	g := e.Group("/feedback")
 
 	server := &feedbackServer{
-		logger:      logger,
-		dataStorage: dataStorage,
-		fileStorage: fileStorage,
+		bindFeedbackApiArgs: args,
 	}
 
 	g.POST("", server.createFeedbackEntryHandler)
@@ -94,8 +97,8 @@ func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
 		return err
 	}
 
-	s.logger.Infof("Saving changes")
-	err = s.dataStorage.SaveFeedback(ctx, feedback)
+	s.Logger.Infof("Saving changes")
+	err = s.DataStorage.SaveFeedback(ctx, feedback)
 	if err != nil {
 		return err
 	}
@@ -119,7 +122,7 @@ func (s *feedbackServer) saveMultipartFile(ctx context.Context, file *multipart.
 
 	filename := id.String() + ext
 
-	size, err := s.fileStorage.SaveFile(ctx, filename, src)
+	size, err := s.FileStorage.SaveFile(ctx, filename, src)
 	if err != nil {
 		return createdFile, err
 	}
@@ -137,7 +140,7 @@ func (s *feedbackServer) getFeedbackEmbedHandler(c echo.Context) error {
 }
 
 func (s *feedbackServer) getAllFeedbackHandler(c echo.Context) error {
-	feedback, err := s.dataStorage.GetAllFeedback(context.Background())
+	feedback, err := s.DataStorage.GetAllFeedback(context.Background())
 	if err != nil {
 		return err
 	}

@@ -20,19 +20,27 @@
  * THE SOFTWARE.
  */
 
-package email
+package welp
 
-import "github.com/zlepper/welp/internal/pkg/models"
+import (
+	"github.com/labstack/echo"
+	"github.com/zlepper/welp/internal/pkg/models"
+	"strconv"
+)
 
-// Creates an email service that doesn't do anything
-// Useful if you don't ever want emails to leave the system
-func NewNoOpEmailService() models.EmailService {
-	return &noOpEmailService{}
+func host(args models.BindWebArgs, e *echo.Echo) {
+
+	if args.UseHttps {
+		hostHttps(e, args)
+	} else {
+		hostHttp(e, args)
+	}
 }
 
-type noOpEmailService struct {
+func hostHttps(e *echo.Echo, args models.BindWebArgs) {
+	e.Logger.Fatal(e.StartAutoTLS(":443"))
 }
 
-func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
-	return nil
+func hostHttp(e *echo.Echo, args models.BindWebArgs) {
+	e.Logger.Fatal(e.Start(":" + strconv.Itoa(args.Port)))
 }
