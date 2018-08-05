@@ -23,8 +23,9 @@
 package consts
 
 const (
-	Issuer = "welp"
-	Bearer = "Bearer "
+	Issuer  = "welp"
+	Bearer  = "Bearer "
+	Version = "0.0.1"
 )
 
 // Just nothing

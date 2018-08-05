@@ -89,6 +89,6 @@ func setupMiddleware(args models.BindWebArgs, e *echo.Echo) {
 	)
 
 	if args.UseHttps {
-		e.Use(middleware.HTTPSRedirect())
+		e.Pre(middleware.HTTPSRedirect())
 	}
 }
