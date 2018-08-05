@@ -25,6 +25,7 @@ package welp
 import (
 	"github.com/labstack/echo"
 	"github.com/zlepper/welp/internal/pkg/models"
+	"golang.org/x/crypto/acme/autocert"
 	"strconv"
 )
 
@@ -38,6 +39,7 @@ func host(args models.BindWebArgs, e *echo.Echo) {
 }
 
 func hostHttps(e *echo.Echo, args models.BindWebArgs) {
+	e.AutoTLSManager.Cache = autocert.DirCache(args.CertificateCacheFolder)
 	e.Logger.Fatal(e.StartAutoTLS(":443"))
 }
 

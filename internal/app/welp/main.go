@@ -34,6 +34,8 @@ import (
 func BindWeb(args models.BindWebArgs) {
 	e := echo.New()
 
+	e.HideBanner = true
+
 	var logger models.Logger = e.Logger
 
 	services, err := internal.GetServices(args, logger)

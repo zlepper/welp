@@ -46,7 +46,6 @@ func bindFilesApi(e *echo.Group, args filesApiArgs) {
 		baseApi:      baseApi{},
 	}
 
-	args.Logger.Infof("Binding files api")
 	e.GET("/files/:id", server.getFileHandler, args.JwtMiddleware)
 }
 

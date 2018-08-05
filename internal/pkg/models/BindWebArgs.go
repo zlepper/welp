@@ -29,6 +29,9 @@ type BindWebArgs struct {
 	// If enabled, will ignore the port argument, and always bind on port 80 and 433
 	// Will also configure HSTS
 	UseHttps bool
+	// The folder to cache https certificates in
+	CertificateCacheFolder string
+
 	// The port to bind to
 	Port int
 

@@ -35,16 +35,17 @@ import (
 )
 
 var (
-	cfgFile            string
-	storageFolderPath  string
-	useHttps           bool
-	port               int
-	tokenDuration      time.Duration
-	saveInterval       time.Duration
-	databaseFolderPath string
-	emailSenderName    string
-	emailSenderAddress string
-	sendGridApiKey     string
+	cfgFile                string
+	storageFolderPath      string
+	useHttps               bool
+	port                   int
+	tokenDuration          time.Duration
+	saveInterval           time.Duration
+	databaseFolderPath     string
+	emailSenderName        string
+	emailSenderAddress     string
+	sendGridApiKey         string
+	certificateCacheFolder string
 )
 
 const (
@@ -61,15 +62,16 @@ var rootCmd = &cobra.Command{
 so clients can easily provide feedback. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		welp.BindWeb(models.BindWebArgs{
-			FolderPath:         storageFolderPath,
-			UseHttps:           useHttps,
-			Port:               port,
-			TokenDuration:      tokenDuration,
-			SaveInterval:       saveInterval,
-			DatabaseFolderName: databaseFolderPath,
-			EmailSenderName:    emailSenderName,
-			EmailSenderAddress: emailSenderAddress,
-			SendGridApiKey:     sendGridApiKey,
+			FolderPath:             storageFolderPath,
+			UseHttps:               useHttps,
+			Port:                   port,
+			TokenDuration:          tokenDuration,
+			SaveInterval:           saveInterval,
+			DatabaseFolderName:     databaseFolderPath,
+			EmailSenderName:        emailSenderName,
+			EmailSenderAddress:     emailSenderAddress,
+			SendGridApiKey:         sendGridApiKey,
+			CertificateCacheFolder: certificateCacheFolder,
 		})
 	},
 }
@@ -98,6 +100,8 @@ func init() {
 
 	f.BoolVar(&useHttps, "useHttps", false, "Enable to automatically use https everywhere. Will add http -> https redirect, and enable HSTS. Not compatible with the --port flag")
 	f.IntVar(&port, "port", 8080, "Sets the port to host welp on")
+	f.StringVar(&certificateCacheFolder, "certificateCacheFolder", ".cache", "The folder where certificates fetched for https will be cached.")
+
 	f.DurationVar(&tokenDuration, "tokenDuration", year, "How long a login token should be valid. Shorter times is probably more secure, but longer times makes it easier for users. Defaults to a year.")
 
 	// Flatfile storage options
