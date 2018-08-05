@@ -22,24 +22,20 @@ Once you have a binary downloaded, simply invoke it from the command line to sta
 configurations. If no flags are specified, the server will attempt to start on port 8080 on http. 
 
 The following flags are available (can also be listed by passing `--help` to the binary):
+
 |Flag name|Description|Default value|Recommendation|
 |---------|-----------|-------------|--------------|
 |--config|The config file to persist options in|$HOME/.welp.yaml|Leave this alone for now.|
 |--databaseFolderPath|Where to save the "database" when using the flat-file database|db|No reason to change this|
-|--emailSenderAddress|The address of the email sender when welp is sending out emails|noreply@noreply.com|
-Change this to some mail that is actually watched in your org, because people _will_ respond to it, weather you want it or not.|
+|--emailSenderAddress|The address of the email sender when welp is sending out emails|noreply@noreply.com|Change this to some mail that is actually watched in your org, because people _will_ respond to it, weather you want it or not.|
 |--emailSenderName|The name of the owner of the address of the above mentioned flag|no-reply|Change this, if you changed the above|
 |-h, --help|Prints the help for the application||Use if you want a reminder about all the flags|
 |--port|The port to run Welp on, will be ignore if --useHttps is passsed|8080|Change if you have port conflicts, or actually want to host on port 80 without https.|
-|--saveInterval|How often the flatFile storage should save changes (such as new feedback, or user changes). Lower values provides better guarantee that data 
-doesn't get lost, but will decrease performance.|5s|No reason to change this, unless it becomes an issue.|
+|--saveInterval|How often the flatFile storage should save changes (such as new feedback, or user changes). Lower values provides better guarantee that data doesn't get lost, but will decrease performance.|5s|No reason to change this, unless it becomes an issue.|
 |--sendGridApiKey|An api key for sendGrid (https://sendgrid.com/). If provided, sendGrid will be used for sending emails.||Set if you want to use SendGrid for sending email.|
 |--storageFolderPath|Sets the folder welp should storage uploaded files to, if using flat file storage|storage|No reason to change this|
-|--tokenDuration|How long a login token should be valid. Shorter times is probably more secure, but longer times makes it easier for users. 
-Defaults to a year.|8760h0m0s (one year)|Decrease this for probably better security, increase for better use experience|
-|--useHttps|Enable to automatically use https everywhere. Will add http -> https redirect, and enable HSTS. Not compatible 
-with the --port flag. Will automatically fetch https certificates using Lets Encrypt (For this reason Welp needs to be available 
-to the general internet)|false|Use this in production, no excuses.|
+|--tokenDuration|How long a login token should be valid. Shorter times is probably more secure, but longer times makes it easier for users. Defaults to a year.|8760h0m0s (one year)|Decrease this for probably better security, increase for better use experience|
+|--useHttps|Enable to automatically use https everywhere. Will add http -> https redirect, and enable HSTS. Not compatible with the --port flag. Will automatically fetch https certificates using Lets Encrypt (For this reason Welp needs to be available to the general internet)|false|Use this in production, no excuses.|
 
 ## General usage
 There are two ways to integrate Welp into your other projects, either pop and iframe pointing to the 
@@ -65,6 +61,7 @@ For programmatic usage, it's recommended to request json or xml.
 
 ### Creating a new feedback entry:
 Send a form post to `/`, with the following attributes:
+
 |key|description|
 |-----|-----|
 |`message`|The message entered by the user|
@@ -77,6 +74,7 @@ It can return all listed types of response. If the request succeeds, 201 status 
 ### Logging in
 You need to login to access most of the apis in welp. 
 Send a POST requests to `/login` with the following parameters:
+
 |key|description|
 |-----|-----|
 |`email`|The email of the user|
