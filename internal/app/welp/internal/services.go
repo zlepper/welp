@@ -43,6 +43,7 @@ type loadedServices struct {
 	models.FeedbackDataStorage
 	models.SecretService
 	models.AuthorizationService
+	models.AuthorizationDataStorage
 	models.EmailService
 }
 
@@ -84,11 +85,12 @@ func GetServices(args models.BindWebArgs, logger models.Logger) (*loadedServices
 	}
 
 	return &loadedServices{
-		fileStorage,
-		feedbackDataStorage,
-		secretService,
-		authenticationService,
-		emailService,
+		FileStorage:              fileStorage,
+		FeedbackDataStorage:      feedbackDataStorage,
+		SecretService:            secretService,
+		AuthorizationService:     authenticationService,
+		AuthorizationDataStorage: authenticationDataStorage,
+		EmailService:             emailService,
 	}, nil
 
 }

@@ -79,7 +79,18 @@ func (s *authorizationService) comparePasswords(password, hash string) error {
 
 // Creates a new user
 // roles should be a slice of the keys of the roles the user should have
-func (s *authorizationService) CreateUser(ctx context.Context, email string, password string, roles []string) error {
+func (s *authorizationService) CreateUser(ctx context.Context, name, email, password string, roles []string) error {
+
+	// Verify roles exists
+outerSearch:
+	for _, r := range roles {
+		for _, role := range models.Roles {
+			if role.Key == r {
+				continue outerSearch
+			}
+		}
+		return models.ErrRoleNotFound
+	}
 
 	hash, err := s.hashPassword(password)
 	if err != nil {
@@ -87,9 +98,10 @@ func (s *authorizationService) CreateUser(ctx context.Context, email string, pas
 	}
 
 	user := models.User{
+		Name:     name,
 		Email:    email,
 		Password: hash,
-		Roles:    []models.Role{},
+		Roles:    roles,
 	}
 
 	err = s.dataStorage.CreateUser(ctx, user)
@@ -132,12 +144,7 @@ func (s *authorizationService) ensureAtLeastOneUserExists(ctx context.Context) e
 	user := models.User{
 		Email:    "admin@admin.com",
 		Password: hash,
-		Roles: []models.Role{
-			{
-				Name: "Admin",
-				Key:  "admin",
-			},
-		},
+		Roles:    []string{models.AdminRole.Key},
 	}
 
 	err = s.dataStorage.CreateUser(ctx, user)
@@ -174,14 +181,8 @@ func (s *authorizationService) Login(ctx context.Context, email, password string
 }
 
 func (s *authorizationService) generateTokenUser(user models.User) models.TokenUser {
-	roles := make([]string, len(user.Roles))
-
-	for index, role := range user.Roles {
-		roles[index] = role.Key
-	}
-
 	return models.TokenUser{
 		Email: user.Email,
-		Roles: roles,
+		Roles: user.Roles,
 	}
 }

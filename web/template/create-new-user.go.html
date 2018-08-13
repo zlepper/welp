@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create new user</title>
+</head>
+<body>
+{{template "header" .AuthState}}
+
+<style>
+    .error {
+        color: red;
+    }
+
+    .error.hidden {
+        display: none;
+    }
+</style>
+
+<form id="create-user-form" action="/users/new" method="post" onsubmit="return createUser(event)">
+
+    <div>
+        <label>
+            Name
+            <input type="text" name="name" required>
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Email
+            <input type="email" name="email" required>
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Repeat Password
+            <input type="password" name="repeatPassword" required>
+        </label>
+    </div>
+
+    <div id="password-no-match-error" class="error hidden">
+        Passwords do not match
+    </div>
+
+    <div>
+        <span>Available roles</span>
+    {{range .AvailableRoles}}
+        <label>
+            <input type="checkbox" value="{{.Key}}" name="roles">
+        {{.Name}}
+        </label>
+    {{end}}
+    </div>
+
+    <button type="submit">
+        Create
+    </button>
+</form>
+
+<script>
+    function createUser(event) {
+
+        event.preventDefault();
+
+        var form = document.getElementById('create-user-form');
+
+        var password = form.password.value;
+        var repeatPassword = form.repeatPassword.value;
+
+        var passwordMatchError = document.getElementById('password-no-match-error');
+        if (password !== repeatPassword) {
+            passwordMatchError.classList.remove('hidden');
+            return false;
+        } else {
+            passwordMatchError.classList.add('hidden');
+        }
+
+        console.log(form);
+
+        var fd = new FormData(form);
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('load', function (event) {
+            console.log('response', xhr.responseText);
+        });
+
+        xhr.addEventListener('error', function (event) {
+            console.error('Request failed', event);
+        });
+
+        xhr.open('POST', '/users');
+
+        xhr.setRequestHeader('Accept', 'application/json');
+
+        xhr.send(fd);
+
+        return false;
+    }
+</script>
+</body>
+</html>

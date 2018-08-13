@@ -78,6 +78,13 @@ func BindWeb(args models.BindWebArgs) {
 		Logger:              logger,
 	})
 
+	bindUserManagementApi(rootGroup, bindUserManagementApiArgs{
+		Logger:        logger,
+		JwtMiddleware: jwtMiddleware,
+		DataStorage:   services.AuthorizationDataStorage,
+		AuthService:   services.AuthorizationService,
+	})
+
 	host(args, e)
 }
 

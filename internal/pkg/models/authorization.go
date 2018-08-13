@@ -25,7 +25,40 @@ package models
 import (
 	"context"
 	"errors"
+	"log"
 )
+
+var (
+	AdminRole       = Role{"Admin", "admin"}
+	ErrRoleNotFound = errors.New("role not found")
+)
+
+var Roles = []Role{AdminRole}
+
+func FindRole(key string) (Role, error) {
+	for _, role := range Roles {
+		if role.Key == key {
+			return role, nil
+		}
+	}
+	return Role{}, ErrRoleNotFound
+}
+
+type RoleFinder struct {
+}
+
+func (r RoleFinder) GetRole(key string) Role {
+	role, err := FindRole(key)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	return role
+}
+
+var ValidRoles = []string{
+	AdminRole.Key,
+}
 
 type Role struct {
 	Name string `json:"name"`
@@ -33,9 +66,20 @@ type Role struct {
 }
 
 type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Roles    []Role `json:"roles"`
+	Name     string   `json:"name"`
+	Email    string   `json:"email"`
+	Password string   `json:"password"`
+	Roles    []string `json:"roles"`
+}
+
+func (u User) HasRole(role string) bool {
+	for _, r := range u.Roles {
+		if r == role {
+			return true
+		}
+	}
+
+	return false
 }
 
 // A user variant, that can be passed around in tokens
@@ -43,6 +87,15 @@ type TokenUser struct {
 	Email string
 	// The role keys of the roles the user has
 	Roles []string
+}
+
+func (u TokenUser) HasRole(role string) bool {
+	for _, r := range u.Roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -66,6 +119,6 @@ type AuthorizationDataStorage interface {
 }
 
 type AuthorizationService interface {
-	CreateUser(ctx context.Context, email, password string, roles []string) error
+	CreateUser(ctx context.Context, name, email, password string, roles []string) error
 	Login(ctx context.Context, email, password string) (string, error)
 }

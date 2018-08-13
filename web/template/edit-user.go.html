@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit user</title>
+</head>
+<body>
+
+{{template "header" .AuthState}}
+
+<style>
+    .error {
+        color: red;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<form id="create-user-form" action="/users/new" method="post" onsubmit="return updateUser(event)">
+
+    <div>
+        <label>
+            Name
+            <input type="text" name="name" required value="{{.User.Name}}">
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Email
+            <input type="email" name="email" required value="{{.User.Email}}">
+        </label>
+    </div>
+
+    <div>
+        <span>Available roles</span>
+    {{range .AvailableRoles}}
+        <label>
+            <input type="checkbox" value="{{.Key}}" name="roles" {{if $.User.HasRole .Key }}checked{{end}}>
+        {{.Name}}
+        </label>
+    {{end}}
+    </div>
+
+    <button type="submit">
+        Update
+    </button>
+</form>
+
+<form action="/users/{{.User.Email}}/change-password" method="post">
+    <div>
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Repeat Password
+            <input type="password" name="repeatPassword" required>
+        </label>
+    </div>
+
+    <div id="password-no-match-error" class="error hidden">
+        Passwords do not match
+    </div>
+
+
+    <button type="submit">
+        Change password
+    </button>
+</form>
+
+
+</body>
+</html>

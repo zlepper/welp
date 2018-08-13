@@ -1,5 +1,17 @@
 <div class="header">
 
+{{if .Authenticated}}
+    <a href="/" class="header-button">
+        Feedback list
+    </a>
+
+{{if .User.HasRole "admin"}}
+    <a href="/users" class="header-button">
+        Users
+    </a>
+{{end}}
+{{end}}
+
     <span class="filler"></span>
 
 {{if .Authenticated}}

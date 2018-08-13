@@ -107,6 +107,7 @@ func (s *authorizationDataStorage) GetAllUsers(ctx context.Context) ([]models.Us
 	index := 0
 	for _, user := range s.data {
 		out[index] = user
+		index++
 	}
 
 	return out, nil

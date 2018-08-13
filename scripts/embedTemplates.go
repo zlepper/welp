@@ -23,6 +23,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
@@ -114,7 +115,11 @@ func getTemplates() (*template.Template, error) {
 }`
 )
 
+var minifiTemplates bool
+
 func main() {
+
+	flag.BoolVar(&minifiTemplates, "minify", false, "Enable to minify templates (To make build and load smaller)")
 
 	err := createEmbedTemplates()
 	if err != nil {
@@ -175,12 +180,19 @@ func createEmbedTemplates() error {
 			return err
 		}
 
-		minified, err := minifer.Bytes("text/html", b)
-		if err != nil {
-			return err
-		}
+		var content string
 
-		content := strconv.Quote(string(minified))
+		if minifiTemplates {
+
+			minified, err := minifer.Bytes("text/html", b)
+			if err != nil {
+				return err
+			}
+
+			content = strconv.Quote(string(minified))
+		} else {
+			content = strconv.Quote(string(b))
+		}
 
 		filename := strings.Replace(filepath.Base(match), ".go.html", "", 1)
 

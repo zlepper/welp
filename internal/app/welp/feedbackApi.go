@@ -42,6 +42,7 @@ type bindFeedbackApiArgs struct {
 	Logger        models.Logger
 	DataStorage   models.FeedbackDataStorage
 	FileStorage   models.FileStorage
+	EmailService  models.EmailService
 	JwtMiddleware echo.MiddlewareFunc
 }
 
@@ -107,7 +108,14 @@ func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
 		return err
 	}
 
+	// Send email
+	go s.sendNewFeedbackEmail(ctx, feedback)
+
 	return s.respond(c, http.StatusCreated, feedback, "feedback-created")
+}
+
+func (s *feedbackServer) sendNewFeedbackEmail(ctx context.Context, feedback models.Feedback) {
+
 }
 
 func (s *feedbackServer) saveMultipartFile(ctx context.Context, file *multipart.FileHeader) (createdFile models.File, err error) {

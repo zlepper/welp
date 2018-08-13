@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User list</title>
+</head>
+<body>
+
+{{template "header" .AuthState}}
+
+<style>
+    .user-table {
+        width: 100%;
+    }
+
+    .user-table td {
+        text-align: center;
+    }
+
+    .user-table .options {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .option-button {
+        text-decoration: none;
+        border: none;
+        background-color: #B63332;
+        color: white;
+        padding: 0.5rem;
+        line-height: 1rem;
+        box-sizing: border-box;
+        font-size: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+    }
+</style>
+
+<table class="user-table">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Options</th>
+    </tr>
+{{range .Users}}
+    <tr>
+        <td>{{.Name}}</td>
+        <td>{{.Email}}</td>
+        <td class="role-list">
+        {{range .Roles}}
+        {{with $.GetRole .}}
+            <span data-key="{{.Key}}">{{.Name}}</span>
+        {{end}}
+        {{end}}
+        </td>
+        <td class="options">
+        {{if $.IsLastAdmin . | not}}
+            <form class="admin-danger" action="/users/deleteUser/{{.Email}}" method="post"
+                  onsubmit="return deleteUser(event, {{.Email}})">
+                <button type="submit" class="option-button">
+                    Delete
+                </button>
+            </form>
+        {{end}}
+
+            <a href="/users/{{.Email}}" class="option-button">
+                Edit
+            </a>
+        </td>
+    </tr>
+{{end}}
+</table>
+<a href="/users/new" class="option-button">
+    Create new user
+</a>
+
+<script>
+    function deleteUser(event, email) {
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('load', function (event) {
+            console.log('response', event);
+
+            deleteUserRow(event);
+        });
+
+        xhr.addEventListener('error', function (event) {
+            console.error('Request failed', event);
+        });
+
+        xhr.open('POST', '/login');
+
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+        xhr.send(JSON.stringify({email: email}));
+
+        return false;
+    }
+
+    function deleteUserRow(event) {
+        var target = event.currentTarget;
+
+        while (target && target.tagName !== 'TR') {
+            target = target.parentElement;
+        }
+
+        if (target) {
+            target.parentNode.removeChild(target);
+        }
+        console.log('removed user row');
+
+        var adminRows = [];
+        var roleListElements = document.querySelectorAll('.role-list');
+        for (var i = 0; i < roleListElements.length; i++) {
+            var rle = roleListElements[i];
+            var roleElements = rle.querySelectorAll('span');
+
+            for (var j = 0; j < roleElements.length; j++) {
+                var el = roleElements[i];
+                var key = el.dataset.key;
+                if (key === 'admin') {
+                    adminRows.push(rle.parentNode);
+                    break;
+                }
+            }
+        }
+
+        console.log('admin rows', adminRows);
+
+        // Remove the last delete forms
+        if (adminRows.length === 1) {
+            var forms = adminRows[0].querySelectorAll('admin-danger');
+            for (i = 0; i < forms.length; i++) {
+                var form = forms[i];
+                form.parentNode.removeChild(form);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
