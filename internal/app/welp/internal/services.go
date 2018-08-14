@@ -24,10 +24,10 @@ package internal
 
 import (
 	"context"
-	"github.com/zlepper/welp/internal/pkg/authentication"
 	"github.com/zlepper/welp/internal/pkg/email"
 	"github.com/zlepper/welp/internal/pkg/flatfile"
 	"github.com/zlepper/welp/internal/pkg/models"
+	"github.com/zlepper/welp/internal/pkg/services"
 	"path"
 )
 
@@ -45,6 +45,7 @@ type loadedServices struct {
 	models.AuthorizationService
 	models.AuthorizationDataStorage
 	models.EmailService
+	models.FeedbackService
 }
 
 func GetServices(args models.BindWebArgs, logger models.Logger) (*loadedServices, error) {
@@ -84,6 +85,11 @@ func GetServices(args models.BindWebArgs, logger models.Logger) (*loadedServices
 		return nil, err
 	}
 
+	feedbackService, err := getFeedbackService(args, logger, emailService, feedbackDataStorage, authenticationDataStorage)
+	if err != nil {
+		return nil, err
+	}
+
 	return &loadedServices{
 		FileStorage:              fileStorage,
 		FeedbackDataStorage:      feedbackDataStorage,
@@ -91,6 +97,7 @@ func GetServices(args models.BindWebArgs, logger models.Logger) (*loadedServices
 		AuthorizationService:     authenticationService,
 		AuthorizationDataStorage: authenticationDataStorage,
 		EmailService:             emailService,
+		FeedbackService:          feedbackService,
 	}, nil
 
 }
@@ -136,7 +143,7 @@ func getEmailService(args models.BindWebArgs, logger models.Logger) (models.Emai
 }
 
 func getTokenService(args models.BindWebArgs, logger models.Logger, secretService models.SecretService) (models.TokenService, error) {
-	return authentication.NewTokenService(authentication.TokenServiceArgs{
+	return services.NewTokenService(services.TokenServiceArgs{
 		SecretService: secretService,
 		Logger:        logger,
 	})
@@ -151,12 +158,12 @@ func getAuthenticationDataStorage(args models.BindWebArgs, logger models.Logger)
 }
 
 func getAuthenticationService(args models.BindWebArgs, logger models.Logger, emailService models.EmailService, tokenService models.TokenService, dataStorage models.AuthorizationDataStorage) (models.AuthorizationService, error) {
-	return authentication.NewAuthorizationService(authentication.AuthorizationServiceArgs{
+	return services.NewAuthorizationService(services.AuthorizationServiceArgs{
 		Logger:        logger,
 		EmailService:  emailService,
 		TokenDuration: args.TokenDuration,
 		TokenService:  tokenService,
-		EmailSender: authentication.EmailSender{
+		EmailSender: services.EmailSender{
 			FromEmail:    args.EmailSenderAddress,
 			FromName:     args.EmailSenderName,
 			ReplyToEmail: args.EmailSenderAddress,
@@ -164,4 +171,14 @@ func getAuthenticationService(args models.BindWebArgs, logger models.Logger, ema
 		},
 		DataStorage: dataStorage,
 	})
+}
+
+func getFeedbackService(args models.BindWebArgs, logger models.Logger, emailService models.EmailService, feedbackDataStorage models.FeedbackDataStorage, userDataStorage models.AuthorizationDataStorage) (models.FeedbackService, error) {
+	return services.NewFeedbackService(services.FeedbackServiceArgs{
+		Logger:          logger,
+		EmailService:    emailService,
+		DataStorage:     feedbackDataStorage,
+		UserDataStorage: userDataStorage,
+		Args:            args,
+	}), nil
 }

@@ -38,7 +38,7 @@ func BindWeb(args models.BindWebArgs) {
 
 	var logger models.Logger = e.Logger
 
-	services, err := internal.GetServices(args, logger)
+	loadedServices, err := internal.GetServices(args, logger)
 	if err != nil {
 		e.Logger.Fatal(err)
 		return
@@ -47,7 +47,7 @@ func BindWeb(args models.BindWebArgs) {
 	e.Logger.SetLevel(log.DEBUG)
 
 	setupMiddleware(args, e)
-	jwtMiddleware := internal.GetJWTMiddlware(services.SecretService, logger)
+	jwtMiddleware := internal.GetJWTMiddlware(loadedServices.SecretService, logger)
 
 	t := &templateRenderer{
 		templates: templates.Must(templates.GetTemplates()),
@@ -58,31 +58,31 @@ func BindWeb(args models.BindWebArgs) {
 	rootGroup := e.Group("")
 
 	bindFeedbackApi(rootGroup, bindFeedbackApiArgs{
-		FileStorage:   services.FileStorage,
-		Logger:        logger,
-		DataStorage:   services.FeedbackDataStorage,
-		JwtMiddleware: jwtMiddleware,
+		FileStorage:     loadedServices.FileStorage,
+		Logger:          logger,
+		FeedbackService: loadedServices.FeedbackService,
+		JwtMiddleware:   jwtMiddleware,
 	})
 
 	bindAuthorizationApi(rootGroup, AuthorizationApiArgs{
 		Logger:        logger,
-		AuthService:   services.AuthorizationService,
+		AuthService:   loadedServices.AuthorizationService,
 		LoginDuration: args.TokenDuration,
 		JwtMiddleware: jwtMiddleware,
 	})
 
 	bindFilesApi(rootGroup, filesApiArgs{
 		JwtMiddleware:       jwtMiddleware,
-		FileStorage:         services.FileStorage,
-		FeedbackDataStorage: services.FeedbackDataStorage,
+		FileStorage:         loadedServices.FileStorage,
+		FeedbackDataStorage: loadedServices.FeedbackDataStorage,
 		Logger:              logger,
 	})
 
 	bindUserManagementApi(rootGroup, bindUserManagementApiArgs{
 		Logger:        logger,
 		JwtMiddleware: jwtMiddleware,
-		DataStorage:   services.AuthorizationDataStorage,
-		AuthService:   services.AuthorizationService,
+		DataStorage:   loadedServices.AuthorizationDataStorage,
+		AuthService:   loadedServices.AuthorizationService,
 	})
 
 	host(args, e)

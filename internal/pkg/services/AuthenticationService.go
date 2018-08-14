@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package authentication
+package services
 
 import (
 	"context"
@@ -98,10 +98,11 @@ outerSearch:
 	}
 
 	user := models.User{
-		Name:     name,
-		Email:    email,
-		Password: hash,
-		Roles:    roles,
+		Name:        name,
+		Email:       email,
+		Password:    hash,
+		Roles:       roles,
+		EmailUpdate: models.Never,
 	}
 
 	err = s.dataStorage.CreateUser(ctx, user)

@@ -18,7 +18,7 @@
     }
 </style>
 
-<form id="create-user-form" action="/users/new" method="post" onsubmit="return updateUser(event)">
+<form id="create-user-form" action="/users/{{.User.Email}}/update" method="post">
 
     <div>
         <label>
@@ -42,6 +42,34 @@
         {{.Name}}
         </label>
     {{end}}
+    </div>
+
+    <div>
+        Email notification schedule
+        <div>
+            <label>
+                <input name="emailUpdate" type="radio" value="never" {{if eq .User.EmailUpdate "never"}}checked{{end}}/>
+                Never
+                <small>(The user will never receive any updates with new feedback, they will have to check the system
+                    manually)
+                </small>
+            </label>
+        </div>
+        <div>
+            <label>
+                <input name="emailUpdate" type="radio" value="daily" {{if eq .User.EmailUpdate "daily"}}checked{{end}}/>
+                Daily
+                <small>(The user will a daily digest of all feedback that came in that day)</small>
+            </label>
+        </div>
+        <div>
+            <label>
+                <input name="emailUpdate" type="radio" value="immediately"
+                       {{if eq .User.EmailUpdate "immediately"}}checked{{end}}/>
+                Immediately
+                <small>(The user will receive an email with the feedback the moment it comes in)</small>
+            </label>
+        </div>
     </div>
 
     <button type="submit">

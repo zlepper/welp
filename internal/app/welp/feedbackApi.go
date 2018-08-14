@@ -39,11 +39,11 @@ type feedbackServer struct {
 }
 
 type bindFeedbackApiArgs struct {
-	Logger        models.Logger
-	DataStorage   models.FeedbackDataStorage
-	FileStorage   models.FileStorage
-	EmailService  models.EmailService
-	JwtMiddleware echo.MiddlewareFunc
+	Logger          models.Logger
+	FeedbackService models.FeedbackService
+	FileStorage     models.FileStorage
+	EmailService    models.EmailService
+	JwtMiddleware   echo.MiddlewareFunc
 }
 
 func bindFeedbackApi(e *echo.Group, args bindFeedbackApiArgs) {
@@ -97,19 +97,10 @@ func (s *feedbackServer) createFeedbackEntryHandler(c echo.Context) error {
 		savedFiles = append(savedFiles, created)
 	}
 
-	feedback, err := models.NewFeedback(request.Message, request.ContactAddress, savedFiles)
+	feedback, err := s.FeedbackService.CreateFeedback(ctx, request.Message, request.ContactAddress, savedFiles)
 	if err != nil {
 		return err
 	}
-
-	s.Logger.Infof("Saving changes")
-	err = s.DataStorage.SaveFeedback(ctx, feedback)
-	if err != nil {
-		return err
-	}
-
-	// Send email
-	go s.sendNewFeedbackEmail(ctx, feedback)
 
 	return s.respond(c, http.StatusCreated, feedback, "feedback-created")
 }
@@ -153,7 +144,7 @@ func (s *feedbackServer) getFeedbackEmbedHandler(c echo.Context) error {
 }
 
 func (s *feedbackServer) getAllFeedbackHandler(c echo.Context) error {
-	feedback, err := s.DataStorage.GetAllFeedback(context.Background())
+	feedback, err := s.FeedbackService.GetAllFeedback(context.Background())
 	if err != nil {
 		return err
 	}
@@ -169,7 +160,7 @@ type feedbackResponse struct {
 func (s *feedbackServer) getFeedbackListHandler(c echo.Context) error {
 	ctx := webapi.GetContext(c.Request())
 
-	feedback, err := s.DataStorage.GetAllFeedback(ctx)
+	feedback, err := s.FeedbackService.GetAllFeedback(ctx)
 	if err != nil {
 		return err
 	}

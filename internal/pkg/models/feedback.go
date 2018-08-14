@@ -33,6 +33,11 @@ type FeedbackDataStorage interface {
 	GetAllFeedback(ctx context.Context) ([]Feedback, error)
 }
 
+type FeedbackService interface {
+	CreateFeedback(ctx context.Context, message, contactAddress string, files []File) (Feedback, error)
+	GetAllFeedback(ctx context.Context) ([]Feedback, error)
+}
+
 func NewFeedback(message, contactAddress string, files []File) (Feedback, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {

@@ -128,6 +128,20 @@ func (s *authorizationDataStorage) GetUserCount(ctx context.Context) (int, error
 	return len(s.data), nil
 }
 
+func (s *authorizationDataStorage) UpdateUser(ctx context.Context, email string, user models.User) error {
+	s.Lock()
+	defer s.Unlock()
+
+	_, ok := s.data[email]
+	if !ok {
+		return models.ErrNoSuchUser
+	}
+	s.data[email] = user
+	s.changed = true
+
+	return nil
+}
+
 func (s *authorizationDataStorage) Lock() {
 	s.lock.Lock()
 }

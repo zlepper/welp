@@ -65,11 +65,24 @@ type Role struct {
 	Key  string `json:"key"`
 }
 
+type EmailNotificationUpdate string
+
+const (
+	// The user should never receive any emails
+	Never EmailNotificationUpdate = "never"
+	// The user should receive a daily update with all the feedback that came that day,
+	// in one big email
+	Daily EmailNotificationUpdate = "daily"
+	// The user should receiver an email with the new feedback the moment it comes in
+	Immediately EmailNotificationUpdate = "immediately"
+)
+
 type User struct {
-	Name     string   `json:"name"`
-	Email    string   `json:"email"`
-	Password string   `json:"password"`
-	Roles    []string `json:"roles"`
+	Name        string                  `json:"name"`
+	Email       string                  `json:"email"`
+	Password    string                  `json:"password"`
+	Roles       []string                `json:"roles"`
+	EmailUpdate EmailNotificationUpdate `json:"emailUpdate"`
 }
 
 func (u User) HasRole(role string) bool {
@@ -116,6 +129,8 @@ type AuthorizationDataStorage interface {
 	DeleteUser(ctx context.Context, email string) error
 	// Should get the number of users in the system
 	GetUserCount(ctx context.Context) (int, error)
+	// Updates an existing user in the system
+	UpdateUser(ctx context.Context, email string, user User) error
 }
 
 type AuthorizationService interface {

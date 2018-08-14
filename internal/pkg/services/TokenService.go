@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package authentication
+package services
 
 import (
 	"context"

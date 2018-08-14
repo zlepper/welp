@@ -52,6 +52,7 @@ func bindUserManagementApi(e *echo.Group, args bindUserManagementApiArgs) {
 	userGroup.POST("", server.postCreateUser)
 	userGroup.DELETE("/:email", server.deleteUser)
 	userGroup.PUT("/:email", server.updateUser)
+	userGroup.POST("/:email/update", server.updateUser)
 	userGroup.GET("/:email", server.getSingleUser)
 
 	userGroup.GET("/new", server.getCreateNewUser)
@@ -178,8 +179,43 @@ func (s *userManagementServer) deleteUser(c echo.Context) error {
 	return nil
 }
 
+type updateUserRequest struct {
+	Name        string                         `json:"name" query:"name" form:"name" xml:"name"`
+	Email       string                         `json:"email" query:"email" form:"email" xml:"email"`
+	Roles       []string                       `json:"roles" query:"roles" form:"roles" xml:"roles"`
+	EmailUpdate models.EmailNotificationUpdate `json:"emailUpdate" query:"emailUpdate" form:"emailUpdate" xml:"emailUpdate"`
+}
+
 func (s *userManagementServer) updateUser(c echo.Context) error {
-	return nil
+	ctx := webapi.GetContext(c.Request())
+
+	email := c.Param("email")
+
+	var request updateUserRequest
+	err := c.Bind(&request)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.DataStorage.GetUser(ctx, email)
+	if err != nil {
+		if err == models.ErrNoSuchUser {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		return err
+	}
+
+	user.Email = request.Email
+	user.EmailUpdate = request.EmailUpdate
+	user.Name = request.Name
+	user.Roles = request.Roles
+
+	err = s.DataStorage.UpdateUser(ctx, email, user)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/users")
 }
 
 type errorList []string

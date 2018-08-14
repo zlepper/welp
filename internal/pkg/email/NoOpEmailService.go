@@ -22,7 +22,10 @@
 
 package email
 
-import "github.com/zlepper/welp/internal/pkg/models"
+import (
+	"github.com/zlepper/welp/internal/pkg/models"
+	"log"
+)
 
 // Creates an email service that doesn't do anything
 // Useful if you don't ever want emails to leave the system
@@ -34,5 +37,7 @@ type noOpEmailService struct {
 }
 
 func (*noOpEmailService) SendEmail(args models.SendEmailArgs) error {
+	log.Printf("NoOp sending email: %v\n", args)
+
 	return nil
 }
