@@ -6,3 +6,6 @@ uploaded-files/
 db/
 storage/
 build/
+Dockerfile
+.dockerignore
+.gitignore
