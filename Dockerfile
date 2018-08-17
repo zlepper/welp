@@ -16,4 +16,4 @@ EXPOSE 8080
 
 VOLUME /db /storage
 
-CMD ["/usr/bin/welp"]
+ENTRYPOINT ["/usr/bin/welp"]
