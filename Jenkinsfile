@@ -69,9 +69,6 @@ pipeline {
         stage('publish') {
             parallel {
                 stage('artifacts') {
-                    when {
-                        branch '**/master'
-                    }
                     steps {
                         unstash name: 'artifacts'
                         sh 'ls -R'
