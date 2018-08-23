@@ -56,6 +56,7 @@ pipeline {
                 }
 
                 stage('build dockerfile') {
+                    agent { label 'docker-releaser' }
                     when {branch '**/master'}
                     steps {
                         unstash 'repo'
@@ -65,24 +66,36 @@ pipeline {
             }
         }
 
-        stage('publish-artifacts') {
-            when {
-                branch '**/master'
-            }
-            steps {
-                unstash name: 'artifacts'
-                sh 'ls -R'
-                archiveArtifacts 'build/**'
-            }
-        }
+        stage('publish') {
+            parallel {
+                stage('artifacts') {
+                    when {
+                        branch '**/master'
+                    }
+                    steps {
+                        unstash name: 'artifacts'
+                        sh 'ls -R'
+                        archiveArtifacts 'build/**'
+                    }
+                }
 
-        stage('pretested publish') {
-            when {
-                branch '**/ready/*'
-            }
-            steps {
-                //This publishes the commit if the tests have run without errors
-                pretestedIntegrationPublisher()
+                stage('docker') {
+                    agent { label 'docker-releaser' }
+                    when { branch '**/master' }
+                    steps {
+                        sh 'docker push zlepper/welp:master'
+                    }
+                }
+
+                stage('pretested') {
+                    when {
+                        branch '**/ready/*'
+                    }
+                    steps {
+                        //This publishes the commit if the tests have run without errors
+                        pretestedIntegrationPublisher()
+                    }
+                }
             }
         }
     }
