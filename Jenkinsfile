@@ -69,9 +69,11 @@ pipeline {
         }
 
         stage('publish-artifacts') {
-            unstash name: 'artifacts'
-            sh 'ls -R'
-            archiveArtifacts 'build/**'
+            steps {
+                unstash name: 'artifacts'
+                sh 'ls -R'
+                archiveArtifacts 'build/**'
+            }
         }
 
         stage('pretested publish') {
