@@ -2,35 +2,40 @@ pipeline {
     agent any
     options { skipDefaultCheckout() }
     stages {
-        stage('checkout-normal') {
-            when {
-                not { branch '**/ready/*' }
-            }
-            steps  {
-                cleanWs()
-                checkout scm
-                stash name: "repo", includes: "**", useDefaultExcludes: false
-            }
-        }
-        stage('checkout-ready') {
-            when {
-                branch '**/ready/*'
-            }
-            steps {
-                cleanWs()
-                //Using the Pretested integration plugin to checkout out any branch in the ready namespace
-                checkout(
-                    [$class: 'GitSCM',
-                    branches: [[name: '*/ready/**']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CleanBeforeCheckout'],
-                    pretestedIntegration(gitIntegrationStrategy: accumulated(),
-                    integrationBranch: 'master',
-                    repoName: 'origin')],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[credentialsId: 'id_rsa', //remember to change credentials and url.
-                    url: 'git@github.com:zlepper/welp.git']]])
-                stash name: "repo", includes: "**", useDefaultExcludes: false
+
+        stage('checkout') {
+            parallel {
+                stage('normal') {
+                    when {
+                        not { branch '**/ready/*' }
+                    }
+                    steps  {
+                        cleanWs()
+                        checkout scm
+                        stash name: "repo", includes: "**", useDefaultExcludes: false
+                    }
+                }
+                stage('ready') {
+                    when {
+                        branch '**/ready/*'
+                    }
+                    steps {
+                        cleanWs()
+                        //Using the Pretested integration plugin to checkout out any branch in the ready namespace
+                        checkout(
+                            [$class: 'GitSCM',
+                            branches: [[name: '*/ready/**']],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [[$class: 'CleanBeforeCheckout'],
+                            pretestedIntegration(gitIntegrationStrategy: accumulated(),
+                            integrationBranch: 'master',
+                            repoName: 'origin')],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[credentialsId: 'id_rsa', //remember to change credentials and url.
+                            url: 'git@github.com:zlepper/welp.git']]])
+                        stash name: "repo", includes: "**", useDefaultExcludes: false
+                    }
+                }
             }
         }
 
