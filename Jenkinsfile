@@ -83,6 +83,7 @@ pipeline {
                     }
                     when {branch 'master'}
                     steps {
+                        unstash 'repo'
                         sh 'docker build -t zlepper/welp:master .'
                     }
                 }
