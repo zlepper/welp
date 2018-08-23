@@ -74,6 +74,18 @@ pipeline {
                         stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
                     }
                 }
+
+                stage('build dockerfile') {
+                    agent {
+                        node {
+                            label: 'ubuntu-1'
+                        }
+                    }
+                    when {branch: 'master'}
+                    steps {
+                        docker build -t zlepper/welp:master .
+                    }
+                }
             }
         }
 
