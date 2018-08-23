@@ -1,6 +1,5 @@
 pipeline {
     agent none
-    options { skipDefaultCheckout() }
     stages {
         stage('checkout-normal') {
             agent {
@@ -12,7 +11,7 @@ pipeline {
                 not { branch '**/ready/*' }
             }
             steps  {
-                checkout scm
+                checkout scm, clearWorkspace: true
                 stash name: "repo", includes: "**", useDefaultExcludes: false
             }
         }
