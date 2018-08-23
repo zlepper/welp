@@ -83,6 +83,7 @@ func main() {
 	for _, conf := range configurations {
 		conf := conf
 		go func() {
+			defer wg.Done()
 			log.Printf("building binary for '%s'\n", conf.Extension)
 			cmd := exec.Cmd{
 				Path: goBinary,
@@ -102,11 +103,10 @@ func main() {
 			output, err := cmd.CombinedOutput()
 			if err != nil {
 				log.Println("build args", cmd.Args)
-				log.Println("Error when building", err, "\n", string(output))
+				log.Fatalln("Error when building", err, "\n", string(output))
 				return
 			}
 			log.Printf("Successfully build binary for '%s'\n", conf.Extension)
-			wg.Done()
 		}()
 	}
 	wg.Wait()
