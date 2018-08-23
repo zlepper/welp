@@ -70,7 +70,7 @@ pipeline {
                     steps {
                         cleanWs()
                         unstash 'repo'
-                        sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go run scripts/build.go"'
+                        sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go run scripts/build/build.go"'
                         stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
                     }
                 }
