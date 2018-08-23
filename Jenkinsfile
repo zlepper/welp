@@ -1,21 +1,6 @@
 pipeline {
     agent none
-    options { skipDefaultCheckout() }
     stages {
-        stage('checkout-normal') {
-            agent {
-                node {
-                    label 'ubuntu-1'
-                }
-            }
-            when {
-                not { branch '**/ready/*' }
-            }
-            steps  {
-                checkout scm
-                stash name: "repo", includes: "**", useDefaultExcludes: false
-            }
-        }
         stage('checkout-ready') {
             agent {
                 node {
@@ -94,11 +79,6 @@ pipeline {
                 //This publishes the commit if the tests have run without errors
                 pretestedIntegrationPublisher()
             }
-        }
-    }
-    post {
-        cleanup {
-            cleanWs()
         }
     }
 }
