@@ -93,7 +93,7 @@ pipeline {
         stage('publish-artifacts') {
             agent any
             when {
-                branch: 'master'
+                branch 'master'
             }
             steps {
                 unstash name: 'artifacts'
