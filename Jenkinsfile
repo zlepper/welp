@@ -79,6 +79,9 @@ pipeline {
 
         stage('publish-artifacts') {
             agent any
+            when {
+                branch: 'master'
+            }
             steps {
                 unstash name: 'artifacts'
                 sh 'ls -R'
