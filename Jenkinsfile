@@ -83,7 +83,7 @@ pipeline {
                     }
                     when {branch 'master'}
                     steps {
-                        docker build -t zlepper/welp:master .
+                        sh 'docker build -t zlepper/welp:master .'
                     }
                 }
             }
