@@ -84,8 +84,31 @@ func main() {
 		conf := conf
 		go func() {
 			defer wg.Done()
-			log.Printf("building binary for '%s'\n", conf.Extension)
+			// Pull dependencies
+			log.Printf("fetching dependencies for '%s'\n", conf.Extension)
 			cmd := exec.Cmd{
+				Path: goBinary,
+				Args: []string{
+					goBinary,
+					"get",
+					"./...",
+				},
+				Env: append(
+					os.Environ(),
+					fmt.Sprintf("GOOS=%s", conf.OS),
+					fmt.Sprintf("GOARCH=%s", conf.Arch),
+				),
+			}
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				log.Println("build args", cmd.Args)
+				log.Fatalln("Error when getting dependencies", err, "\n", string(output))
+				return
+			}
+
+			// Actually build
+			log.Printf("building binary for '%s'\n", conf.Extension)
+			cmd = exec.Cmd{
 				Path: goBinary,
 				Args: []string{
 					goBinary,
@@ -100,7 +123,7 @@ func main() {
 					fmt.Sprintf("GOARCH=%s", conf.Arch),
 				),
 			}
-			output, err := cmd.CombinedOutput()
+			output, err = cmd.CombinedOutput()
 			if err != nil {
 				log.Println("build args", cmd.Args)
 				log.Fatalln("Error when building", err, "\n", string(output))
