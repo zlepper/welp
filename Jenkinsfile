@@ -66,7 +66,7 @@ pipeline {
                             label 'ubuntu-3'
                         }
                     }
-                    when { branch 'master' }
+                    when { branch '**/master' }
                     steps {
                         cleanWs()
                         unstash 'repo'
@@ -81,7 +81,7 @@ pipeline {
                             label 'ubuntu-1'
                         }
                     }
-                    when {branch 'master'}
+                    when {branch '**/master'}
                     steps {
                         unstash 'repo'
                         sh 'docker build -t zlepper/welp:master .'
@@ -93,7 +93,7 @@ pipeline {
         stage('publish-artifacts') {
             agent any
             when {
-                branch 'master'
+                branch '**/master'
             }
             steps {
                 unstash name: 'artifacts'
