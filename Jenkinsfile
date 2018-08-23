@@ -78,6 +78,7 @@ pipeline {
         }
 
         stage('publish-artifacts') {
+            agent any
             steps {
                 unstash name: 'artifacts'
                 sh 'ls -R'
@@ -86,11 +87,7 @@ pipeline {
         }
 
         stage('pretested publish') {
-            agent {
-                node {
-                    label 'ubuntu 2'
-                }
-            }
+            agent any
             when {
                 branch '**/ready/*'
             }
