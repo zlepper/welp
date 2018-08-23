@@ -86,6 +86,7 @@ func main() {
 			Args: []string{
 				goBinary,
 				"get",
+				"-d",
 				"./...",
 			},
 			Env: append(
