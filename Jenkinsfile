@@ -1,6 +1,22 @@
 pipeline {
     agent none
+    options { skipDefaultCheckout() }
     stages {
+        stage('checkout-normal') {
+            agent {
+                node {
+                    label 'ubuntu-1'
+                }
+            }
+            when {
+                not { branch '**/ready/*' }
+            }
+            steps  {
+                cleanWs()
+                checkout scm
+                stash name: "repo", includes: "**", useDefaultExcludes: false
+            }
+        }
         stage('checkout-ready') {
             agent {
                 node {
@@ -11,6 +27,7 @@ pipeline {
                 branch '**/ready/*'
             }
             steps {
+                cleanWs()
                 //Using the Pretested integration plugin to checkout out any branch in the ready namespace
                 checkout(
                     [$class: 'GitSCM',
@@ -37,6 +54,7 @@ pipeline {
                         }
                     }
                     steps {
+                        cleanWs()
                         unstash 'repo'
                         sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go test ./..."'
                     }
@@ -50,6 +68,7 @@ pipeline {
                     }
                     when { branch 'master' }
                     steps {
+                        cleanWs()
                         unstash 'repo'
                         sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go run scripts/build.go"'
                         stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
@@ -60,6 +79,7 @@ pipeline {
 
         stage('publish-artifacts') {
             steps {
+                cleanWs()
                 unstash name: 'artifacts'
                 sh 'ls -R'
                 archiveArtifacts 'build/**'
