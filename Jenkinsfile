@@ -1,5 +1,6 @@
 pipeline {
     agent none
+    options { skipDefaultCheckout() }
     stages {
         stage('checkout-normal') {
             agent {
