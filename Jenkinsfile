@@ -1,7 +1,7 @@
 pipeline {
     agent none
     stages {
-        stage('checkout') {
+        stage('checkout-normal') {
             agent {
                 node {
                     label 'ubuntu-1'
@@ -15,7 +15,7 @@ pipeline {
                 stash name: "repo", includes: "**", useDefaultExcludes: false
             }
         }
-        stage('checkout') {
+        stage('checkout-ready') {
             agent {
                 node {
                     label 'ubuntu-1'
