@@ -28,7 +28,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 )
 
 type configuration struct {
@@ -101,41 +100,32 @@ func main() {
 			log.Fatalln("Error when getting dependencies", err, "\n", string(output))
 			return
 		}
+
+		// Actually build
+		log.Printf("building binary for '%s'\n", conf.Extension)
+		cmd = exec.Cmd{
+			Path: goBinary,
+			Args: []string{
+				goBinary,
+				"build",
+				"-o",
+				fmt.Sprintf("build/welp-%s-%s", consts.Version, conf.Extension),
+				"github.com/zlepper/welp",
+			},
+			Env: append(
+				os.Environ(),
+				fmt.Sprintf("GOOS=%s", conf.OS),
+				fmt.Sprintf("GOARCH=%s", conf.Arch),
+			),
+		}
+		output, err = cmd.CombinedOutput()
+		if err != nil {
+			log.Println("build args", cmd.Args)
+			log.Fatalln("Error when building", err, "\n", string(output))
+			return
+		}
+		log.Printf("Successfully build binary for '%s'\n", conf.Extension)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(configurations))
-	for _, conf := range configurations {
-		conf := conf
-		go func() {
-			defer wg.Done()
-
-			// Actually build
-			log.Printf("building binary for '%s'\n", conf.Extension)
-			cmd := exec.Cmd{
-				Path: goBinary,
-				Args: []string{
-					goBinary,
-					"build",
-					"-o",
-					fmt.Sprintf("build/welp-%s-%s", consts.Version, conf.Extension),
-					"github.com/zlepper/welp",
-				},
-				Env: append(
-					os.Environ(),
-					fmt.Sprintf("GOOS=%s", conf.OS),
-					fmt.Sprintf("GOARCH=%s", conf.Arch),
-				),
-			}
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				log.Println("build args", cmd.Args)
-				log.Fatalln("Error when building", err, "\n", string(output))
-				return
-			}
-			log.Printf("Successfully build binary for '%s'\n", conf.Extension)
-		}()
-	}
-	wg.Wait()
 	log.Println("Finished building all configurations.")
 }
