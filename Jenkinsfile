@@ -78,10 +78,10 @@ pipeline {
                 stage('build dockerfile') {
                     agent {
                         node {
-                            label: 'ubuntu-1'
+                            label 'ubuntu-1'
                         }
                     }
-                    when {branch: 'master'}
+                    when {branch 'master'}
                     steps {
                         docker build -t zlepper/welp:master .
                     }
