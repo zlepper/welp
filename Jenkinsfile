@@ -12,7 +12,7 @@ pipeline {
             }
             steps  {
                 checkout scm
-                stash
+                stash name: "repo", includes: "**", useDefaultExcludes: false
             }
         }
         stage('checkout') {
@@ -37,6 +37,7 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [[credentialsId: 'id_rsa', //remember to change credentials and url.
                     url: 'git@github.com:zlepper/welp.git']]])
+                stash name: "repo", includes: "**", useDefaultExcludes: false
             }
         }
 
@@ -47,6 +48,7 @@ pipeline {
                 }
             }
             steps {
+                unstash 'repo'
                 sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go test ./...'
             }
         }
@@ -59,6 +61,7 @@ pipeline {
             }
             when { branch 'master' }
             steps {
+                unstash 'repo'
                 sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go run scripts/build.go'
                 archiveArtifacts 'build/**'
             }
