@@ -42,29 +42,34 @@ pipeline {
             }
         }
 
-        stage('test') {
-            agent {
-                node {
-                    label 'ubuntu-2'
-                }
-            }
-            steps {
-                unstash 'repo'
-                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go test ./..."'
-            }
-        }
+        stage('build-test') {
+            parallel {
 
-        stage('build releases') {
-            agent {
-                node {
-                    label 'ubuntu-3'
+                stage('test') {
+                    agent {
+                        node {
+                            label 'ubuntu-2'
+                        }
+                    }
+                    steps {
+                        unstash 'repo'
+                        sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go test ./..."'
+                    }
                 }
-            }
-            when { branch 'master' }
-            steps {
-                unstash 'repo'
-                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go run scripts/build.go"'
-                stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
+
+                stage('build releases') {
+                    agent {
+                        node {
+                            label 'ubuntu-3'
+                        }
+                    }
+                    when { branch 'master' }
+                    steps {
+                        unstash 'repo'
+                        sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 /bin/bash -c "go get ./... && go run scripts/build.go"'
+                        stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
+                    }
+                }
             }
         }
 
