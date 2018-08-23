@@ -1,13 +1,8 @@
 pipeline {
-    agent none
+    agent any
     options { skipDefaultCheckout() }
     stages {
         stage('checkout-normal') {
-            agent {
-                node {
-                    label 'ubuntu-1'
-                }
-            }
             when {
                 not { branch '**/ready/*' }
             }
@@ -18,11 +13,6 @@ pipeline {
             }
         }
         stage('checkout-ready') {
-            agent {
-                node {
-                    label 'ubuntu-1'
-                }
-            }
             when {
                 branch '**/ready/*'
             }
@@ -48,11 +38,6 @@ pipeline {
             parallel {
 
                 stage('test') {
-                    agent {
-                        node {
-                            label 'ubuntu-2'
-                        }
-                    }
                     steps {
                         cleanWs()
                         unstash 'repo'
@@ -61,11 +46,6 @@ pipeline {
                 }
 
                 stage('build releases') {
-                    agent {
-                        node {
-                            label 'ubuntu-3'
-                        }
-                    }
                     when { branch '**/master' }
                     steps {
                         cleanWs()
@@ -76,11 +56,6 @@ pipeline {
                 }
 
                 stage('build dockerfile') {
-                    agent {
-                        node {
-                            label 'ubuntu-1'
-                        }
-                    }
                     when {branch '**/master'}
                     steps {
                         unstash 'repo'
@@ -91,7 +66,6 @@ pipeline {
         }
 
         stage('publish-artifacts') {
-            agent any
             when {
                 branch '**/master'
             }
@@ -103,7 +77,6 @@ pipeline {
         }
 
         stage('pretested publish') {
-            agent any
             when {
                 branch '**/ready/*'
             }
