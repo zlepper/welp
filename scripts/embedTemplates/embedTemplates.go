@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package embedTemplates
+package main
 
 import (
 	"flag"
