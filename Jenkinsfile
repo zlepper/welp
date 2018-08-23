@@ -1,5 +1,6 @@
 pipeline {
     agent none
+    options { skipDefaultCheckout() }
     stages {
         stage('checkout-normal') {
             agent {
@@ -49,7 +50,7 @@ pipeline {
             }
             steps {
                 unstash 'repo'
-                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go test ./...'
+                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go get ./... && go test ./...'
             }
         }
 
@@ -62,9 +63,15 @@ pipeline {
             when { branch 'master' }
             steps {
                 unstash 'repo'
-                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go run scripts/build.go'
-                archiveArtifacts 'build/**'
+                sh 'docker run -i --rm -v $PWD:/go/src/github.com/zlepper/welp -w /go/src/github.com/zlepper/welp golang:1.10 go get ./... && go run scripts/build.go'
+                stash name: 'artifacts', includes: 'build/**', useDefaultExcludes: false
             }
+        }
+
+        stage('publish-artifacts') {
+            unstash name: 'artifacts'
+            sh 'ls -R'
+            archiveArtifacts 'build/**'
         }
 
         stage('pretested publish') {

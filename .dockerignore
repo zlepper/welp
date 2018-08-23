@@ -5,7 +5,7 @@ uploaded-files/
 .idea
 db/
 storage/
-build/
+/build/
 Dockerfile
 .dockerignore
 .gitignore

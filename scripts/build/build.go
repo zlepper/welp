@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package main
+package build
 
 import (
 	"fmt"
