@@ -11,7 +11,7 @@ pipeline {
                 not { branch '**/ready/*' }
             }
             steps  {
-                checkout scm, clearWorkspace: true
+                checkout scm
                 stash name: "repo", includes: "**", useDefaultExcludes: false
             }
         }
