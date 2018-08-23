@@ -79,7 +79,6 @@ pipeline {
 
         stage('publish-artifacts') {
             steps {
-                cleanWs()
                 unstash name: 'artifacts'
                 sh 'ls -R'
                 archiveArtifacts 'build/**'
